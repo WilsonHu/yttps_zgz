@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eservice.iot.dao.VisitorInfoMapper">
+  <resultMap id="BaseResultMap" type="com.eservice.iot.model.visitor_info.VisitorInfo">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="IdCard" jdbcType="VARCHAR" property="idcard" />
+    <result column="company" jdbcType="VARCHAR" property="company" />
+    <result column="dateTime" jdbcType="TIMESTAMP" property="datetime" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+  </resultMap>
+
+  <select id="search" parameterType="java.lang.String" resultMap="BaseResultMap">
+      SELECT * FROM `visitor_info`
+      WHERE 1=1
+    <if test="dateTime != null and dateTime != ''">
+      and dateTime = '${dateTime}'
+    </if>
+  </select>
+</mapper>

@@ -127,10 +127,11 @@ public class VisitorInfoController {
        List<String[]> excel = ExcelData.getExcelData(multipartFile);
        String[] data = {"id","name","idcard","company"};
        List<String> visitorJsonList = new ArrayList<>();
+       Integer index=1;
         for (String[] rowData: excel) {
             boolean isTrue=(rowData[2].length()==18)?true:false;        //身份证是否正确是否正确
             StringBuffer visitorJson = new StringBuffer("{");       //json格式以{开始
-            for (int i=0;isTrue&&i<rowData.length;i++) {
+            for (int i=1;isTrue&&i<rowData.length;i++) {
                 if("".equals(rowData[i])){
                     isTrue=false;
                     break;
@@ -141,8 +142,9 @@ public class VisitorInfoController {
                 visitorJson=new StringBuffer(visitorJson.substring(0, visitorJson.lastIndexOf(","))+"}");//去除最后一个，json格式以}结束
                 visitorJsonList.add(visitorJson.toString());
             }else {
-                errorIndex.append(rowData[0]+",");
+                errorIndex.append(index+",");
             }
+            index++;
         }
         if(errorIndex.length()==0){
             return visitorJsonList;

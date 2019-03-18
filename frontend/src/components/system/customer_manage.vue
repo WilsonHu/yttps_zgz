@@ -3,7 +3,7 @@
         <el-col class="well well-lg" style="background-color: white;">
             <el-row>
                 <el-col>
-                    <el-form :model="filters" label-position="right" label-width="60px">
+                    <el-form :model="filters" label-position="right" label-width="80px">
                         <el-col :span="5">
                             <el-form-item label="日期:">
                                 <el-date-picker
@@ -15,7 +15,16 @@
                                 </el-date-picker>
                             </el-form-item>
                         </el-col>
+                        <el-col :span="5">
+                            <el-form-item label="来访状态:" >
+                                <el-select v-model="filters.status" clearable placeholder="请选择">
+                                    <el-option label="已来访" value="1"></el-option>
+                                    <el-option label="未来访" value="0"></el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
                     </el-form>
+
                     <el-col :span="1" style="margin-left: 25px">
                         <el-button
 		                        icon="el-icon-search"
@@ -74,8 +83,8 @@
                                 width="200"
                                 label="是否来访" >
                             <template scope="scope">
-                                <div v-if="scope.row.status==0">未来访</div>
-                                <div v-if="scope.row.status==1">已来访</div>
+                                <div style="color: red" v-if="scope.row.status==0">未来访</div>
+                                <div style="color: green" v-if="scope.row.status==1">已来访</div>
                             </template>
                         </el-table-column >
 
@@ -117,7 +126,7 @@
             </el-row >
         </el-col >
 
-        <el-dialog title="导入Excel文件" :visible.sync="addDialogVisible" width="40%">
+      <el-dialog title="导入Excel文件" :visible.sync="addDialogVisible" width="40%">
             <el-upload
                     class="upload-demo"
                     ref="upload"
@@ -136,6 +145,7 @@
                 <el-button type="success" @click="submitUpload" icon="el-icon-check">确 定</el-button >
             </div >
         </el-dialog >
+
 <!--
         <el-dialog title="编辑公司" :visible.sync="modifyDialogVisible" width="35%">
             <el-form :model="modifyForm" >
@@ -173,82 +183,85 @@
     .upload-demo input{
         display: none;
     }
-    .active {
-        width: 100px;
-        height: 100px;
-        background: green;
-    }
 </style>
 
 <script >
     var _this;
+
     export default {
-	    name: "part_manage",
-	    components: {},
-	    data () {
-		    _this = this;
-		    return {
+        name: "part_manage",
+        components: {},
+        data () {
+            _this = this;
+            return {
+                name:'',
+                idCard:'',
+                face_image:'',
+                photo:'',
                 pickerOptions1: {
                     disabledDate(time) {
                         return time.getTime() > Date.now();
-                    },
-                    shortcuts: [{
-                        text: '今天',
-                        onClick(picker) {
-                            picker.$emit('pick', new Date());
-                        }
-                    }, {
-                        text: '昨天',
-                        onClick(picker) {
-                            const date = new Date();
-                            date.setTime(date.getTime() - 3600 * 1000 * 24);
-                            picker.$emit('pick', date);
-                        }
-                    }, {
-                        text: '一周前',
-                        onClick(picker) {
-                            const date = new Date();
-                            date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', date);
-                        }
-                    }]
+                    }
                 },
-                isError: false,
-			    errorMsg: '',
-			    totalRecords: 0,
-			    selectedItem: {},
-			    deleteConfirmVisible: false,
-			    tableData: [],
-			    //分页
-			    pageSize: EveryPageNum,//每一页的num
-			    currentPage: 1,
-			    startRow: 1,
+               // isError: false,
+               // errorMsg: '',
+                totalRecords: 0,
+                selectedItem: {},
+                deleteConfirmVisible: false,
+                tableData: [],
+                //分页
+                pageSize: EveryPageNum,//每一页的num
+                currentPage: 1,
+                startRow: 1,
 
-			    //增加对话框
-			    addDialogVisible: false,
-			    form: {
-			        createTime:"",
+                //增加对话框
+                addDialogVisible: false,
+                form: {
+                    createTime:"",
                     customerName: "",
-			    },
-			    formLabelWidth: '100px',
+                },
+                formLabelWidth: '100px',
 
-			   /* //增加对话框
-			    modifyDialogVisible: false,
-			    modifyForm: {
-				    id: '',
-                    customerName: "",
-			    },*/
-			    filters: {
-                    chooseTime:""
-			    },
-			    loadingUI: false,
-		    }
-	    },
-	    methods: {
+                filters: {
+                    chooseTime:"",
+                    status:""
+                },
+                loadingUI: false,
+            }
+        },
+        methods: {
+            openSuccess() {
+                _this.search();
+                _this.$notify({
+                    dangerouslyUseHTMLString: true,
+                    message:
+                    '<span>姓名：</span><strong>'+_this.name+'</strong></br>' +
+                    '<span>身份证：</span><strong>'+_this.idCard+'</strong></br>' +
+                    '<span>身份证照：</span><img src='+_this.photo+'></br>',
+                    type: 'success',
+                    duration:3000,
+                    position: 'top-right',
+                    offset: 50
+                });
+            },
+            openError() {
+                _this.$notify({
+                    dangerouslyUseHTMLString: true,
+                    message:
+                    '<span>姓名：</span><strong>'+_this.name+'</strong></br>' +
+                    '<span>身份证：</span><strong>'+_this.idCard+'</strong></br>' +
+                    '<span>身份证照：</span><img src='+_this.photo+'></br>'+
+                    '<span>现场照片：</span><img style="margin-top: 5px;width: 180px;height: 180px" src='+_this.face_image+'>' ,
+                    type: 'error',
+                    duration: 0,
+                    position: 'top-left',
+                    offset: 50
+                });
+            },
+
             submitUpload() {
                 this.$refs.upload.submit();
             },//开始上传文件
-
             beforeAvatarUpload(file){
 
                 console.log('文件类型：'+file.type);
@@ -259,195 +272,170 @@
 
                 if(!isXls && !isXlsx){
                     _this.$message.error('只能上传格式是 xls 或 xlxs 的Excel文件');
-                }else{
-                    _this.$message.error('请选择上传的文件！！');
                 }
                 return  (isXls || isXlsx);
 
             },//文件上传前执行
-
-            successUpload(){
-                _this.addDialogVisible = false;
-                this.$refs.upload.clearFiles();
+            successUpload(response, file, fileList){
+                if(response.data=='true'){
+                    _this.$message.success('文件上传成功！');
+                    _this.addDialogVisible = false;
+                    _this.onSelectUsers();
+                }else{
+                    _this.$message.error(response.data);
+                }
+                _this.$refs.upload.clearFiles();
             },//文件上传成功方法
-
-            errorUpload(){
-                _this.$message.error('文件上传失败，请检查服务器是否允许正常！');
+            errorUpload(err, file, fileList){
+                _this.$message.error('文件上传失败，请检查服务器是否运行正常！');
             },//文件上传失败
-
             exceedFile(){
                 _this.$message.error('每次只能上传一个文件！');
             },//选择文件数量超过
-
             handleRemove() {
                 _this.addDialogVisible = false;
                 this.$refs.upload.clearFiles();
             },//取消按钮
-
-            /*onChange: function () {
-			    if (_this.addDialogVisible) {
-				    _this.isError = _this.validateForm(_this.form, false);
-			    }
-			    else {
-				    _this.isError = _this.validateForm(_this.modifyForm, true);
-			    }
-		    },*/
-
-		    handleCurrentChange(val) {
-			    this.currentPage = val;
-			    this.onSelectUsers();
-		    },
-
-		    search() {
-			    _this.onSelectUsers();
-		    },//搜索
-
+            handleCurrentChange(val) {
+                this.currentPage = val;
+                this.onSelectUsers();
+            },
+            search() {
+                _this.onSelectUsers();
+            },//搜索
             onSelectUsers() {
-			    _this.tableData = new Array();
-			    _this.loadingUI = true;
+                _this.tableData = new Array();
+                _this.loadingUI = true;
                 _this.filters.page = _this.currentPage;
                 _this.filters.size = _this.pageSize;
-			    $.ajax({
-				    url: HOST + "/visitor/info/list",
-				    type: 'POST',
-				    dataType: 'json',
-				    data: _this.filters,
-				    success: function (data) {
-					    if (data.code == 200) {
-						    _this.totalRecords = data.data.total;
+                $.ajax({
+                    url: HOST + "/visitor/info/list",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: _this.filters,
+                    success: function (data) {
+                        if (data.code == 200) {
+                            _this.totalRecords = data.data.total;
                             _this.tableData = data.data.list;
                             _this.startRow = data.data.startRow;
-					    }
+                        }
                         _this.loadingUI = false;
-				    },
+                    },
                     error: function (data) {
                         showMessage(_this, '服务器访问出错', 0);
                         _this.loadingUI = false;
                     }
-			    })
-		    },//查询
-
+                })
+            },//查询
             handleAdd() {
-                this.isError = false;
-			    this.errorMsg = '';
-			    this.addDialogVisible = true;
-		    },//显示窗口
-
-		    /*handleEdit(index, item) {
-			    this.isError = false;
-			    this.errorMsg = '';
-			    this.selectedItem = item;
-                this.modifyForm.id = item.id;
-                this.modifyForm.customerName = item.customerName;
-                this.isError = this.validateForm(this.modifyForm, true);
-			    this.modifyDialogVisible = true;
-		    },*/
-
-		    /*handleDelete(index, item) {
-			    this.selectedItem = copyObject(item);
-			    if (this.selectedItem) {
-				    _this.deleteConfirmVisible = true;
-			    }
-		    },*/
-
-		    /*onConfirmDelete: function () {
-			    _this.deleteConfirmVisible = false;
-			    $.ajax({
-				    url: HOST + "customer/delete",
-				    type: 'POST',
-				    dataType: 'json',
-				    data: {"id":this.selectedItem.id},
-				    success: function (data) {
-					    if (data.code == 200) {
-							_this.onSelectUsers();
-						    showMessage(_this, '删除成功', 1);
-					    } else {
-						    showMessage(_this, '删除失败', 0);
-					    }
-				    },
-				    error: function (data) {
-					    showMessage(_this, '服务器访问出错', 0);
-				    }
-			    })
-		    },*/
-
-		    /*validateForm(formObj, isEdit)	{
-			    var iserror = false;
-
-			    if (!iserror && isStringEmpty(formObj.customerName)) {
-				    iserror = true;
-				    this.errorMsg = '公司名称不能为空！';
-                }
-			    return iserror;
-		    },*/
-
-            /*onAdd() {
-                            this.isError = _this.validateForm(this.form, false);
-
-                            if (!this.isError) {
-                                $.ajax({
-                                    url: HOST + "customer/add",
-                                    type: 'POST',
-                                    dataType: 'json',
-                                    data: {"customerName": _this.form.customerName},
-                                    success: function (data) {
-                                        if (data.code == 200) {
-                                            _this.onSelectUsers();
-                                            _this.addDialogVisible = false;
-                                            showMessage(_this, '添加成功', 1);
-                                        } else {
-                                            _this.isError = true;
-                                            _this.errorMsg = data.message;
-                                        }
-                                    },
-                                    error: function (data) {
-                                        _this.errorMsg = '服务器访问出错！';
-                                    }
-                                })
-                            }
-
-                        },*/
-
-		    /*onEidt() {
-			    this.isError = this.validateForm(this.modifyForm, true);
-			    if (!_this.isError) {
-				    $.ajax({
-					    url: HOST + "customer/update",
-					    type: 'POST',
-					    dataType: 'json',
-					    data: {"customer":JSON.stringify(_this.modifyForm)},
-					    success: function (data) {
-						    if (data.code == 200){
-							    _this.modifyDialogVisible = false;
-							    _this.onSelectUsers();
-							    showMessage(_this, '修改成功', 1);
-						    }else {
-                                _this.errorMsg = data.message;
-                                _this.isError = true;
-                            }
-					    },
-					    error: function (data) {
-						    _this.errorMsg = '服务器访问出错！';
-						    _this.isError = true;
-					    }
-				    })
-			    }
-		    }*/
-	    },
-	    computed: {},
-	    filters: { },
-	    created: function () {
-		    this.userinfo = JSON.parse(sessionStorage.getItem('user'));
-		    if (isNull(this.userinfo)) {
-			    this.$router.push({path: '/login'});
-			    return;
-		    }
-	    },
-	    mounted: function () {
-		    this.onSelectUsers();
-	    },
+               // this.isError = false;
+               // this.errorMsg = '';
+                this.addDialogVisible = true;
+            },//显示窗口
+        },
+        computed: {},
+        filters: { },
+        created: function () {
+            this.userinfo = JSON.parse(sessionStorage.getItem('user'));
+            if (isNull(this.userinfo)) {
+                this.$router.push({path: '/login'});
+                return;
+            }
+        },
+        mounted: function () {
+            this.onSelectUsers();
+        },
     }
 
+    var mqttReconnectInterval = null;
+    var hostname = MqttServer,
+        port = ServerPort,
+        clientId = `client`,
+        timeout = 30,
+        keepAlive = 100,
+        cleanSession = false,
+        ssl = false;
+    //userName = 'admin',
+    //password = 'password';
+    var client = new Paho.MQTT.Client(hostname, port, clientId);
+    //建立客户端实例
+    var options = {
+        invocationContext: {
+            host: hostname,
+            port: port,
+            path: client.path,
+            clientId: clientId
+        },
+        timeout: timeout,
+        keepAliveInterval: keepAlive,
+        cleanSession: cleanSession,
+        useSSL: ssl,
+        //userName: userName,
+        //password: password,
+        onSuccess: onConnect,
+        onFailure: function (e) {
+            console.log(`connect failure: ${e}`);
+        },
+    };
+    $(document).ready(function () {
+        client.connect(options);//连接服务器并注册连接成功处理事件
+        client.onConnectionLost = onConnectionLost;//注册连接断开处理事件
+        client.onMessageArrived = onMessageArrived;//注册消息接收处理事件
+    });
+
+    function onConnect() {
+        console.log("connect successfully");
+        if (mqttReconnectInterval != null) {
+            clearInterval(mqttReconnectInterval);
+            mqttReconnectInterval = null;
+        }
+        for (let item of ServerTOPIC)//订阅主题
+        {
+            console.log(`subscribed server topic: ${item}`);
+            client.subscribe(item);
+        }
+    }
+
+    function onConnectionLost(responseObject) {
+        if (responseObject.errorCode !== 0) {
+            console.log("连接已断开");
+            console.log("onConnectionLost:" + responseObject.errorMessage);
+            mqttReconnectInterval = setInterval(() => {
+                client.connect(options);
+                client.onConnectionLost = onConnectionLost;//注册连接断开处理事件
+                client.onMessageArrived = onMessageArrived;//注册消息接收处理事件
+            }, 2000);
+        }
+    }
+
+    function onMessageArrived(message) {
+        console.log("收到消息:" + message.payloadString);
+        console.log("主题：" + message.destinationName);
+        var data = null;
+        try {
+            data = jQuery.parseJSON(message.payloadString);
+            console.log("解析出来的：data：" + JSON.stringify(data));
+        } catch (e) {
+            console.log(e);
+        }
+        if (data != null) {
+            _this.name=data.name;
+            _this.idCard=data.id_num;
+            _this.photo="data:image/jpeg;base64,"+data.photo;
+            switch (message.destinationName) {
+                case ServerTOPIC[0]: //visitor/error
+                    _this.face_image="data:image/jpeg;base64,"+data.face_image;
+                    _this.openError();
+                    break;
+                case ServerTOPIC[1]://visitor/success
+                    _this.openSuccess();
+                    break;
+                default:
+                    console.log("未知主题消息...")
+                    break;
+            }
+        }
+    }
 </script >
 <style >
 

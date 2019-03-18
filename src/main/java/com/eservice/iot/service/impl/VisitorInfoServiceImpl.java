@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -22,7 +24,10 @@ public class VisitorInfoServiceImpl extends AbstractService<VisitorInfo> impleme
     @Resource
     private VisitorInfoMapper visitorInfoMapper;
 
-    public List<VisitorInfo> search (String date){
-        return visitorInfoMapper.search(date);
+    public List<VisitorInfo> search (String date,Integer status){
+        Map map = new HashMap();
+        map.put("dateTime",date);
+        map.put("status",status);
+        return visitorInfoMapper.search(map);
     }
 }

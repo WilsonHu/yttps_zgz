@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -43,67 +44,37 @@ public class TagService {
     @Autowired
     private TokenService tokenService;
 
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     private ThreadPoolTaskExecutor mExecutor;
 
-    private static boolean TAG_INITIAL_FINISHED = false;
 
     /**
      * Token
      */
     private String token;
+    /**
+     * 访客tag
+     */
+    private List<Tag> allTagList = new ArrayList<>();
+    /**
+     * 访客tag
+     */
+    private List<Tag> visitorTagList = new ArrayList<>();
 
     /**
-     * 全部tag列表
+     * 员工tag
      */
-    private ArrayList<Tag> mAllTagList = new ArrayList<>();
+    private List<Tag> staffTagList = new ArrayList<>();
 
     /**
-     * 需要考勤标签名称列表
+     * 每10秒更新一次TAG
      */
-    private ArrayList<String> SIGNIN_TAG_NAME_LIST;
-
-    /**
-     * 需要考勤标签ID列表
-     */
-    private ArrayList<String> mSignInTagIdList = new ArrayList<>();
-
-    /**
-     * VIP标签名称列表，包含了员工和访客
-     */
-    private ArrayList<String> VIP_TAG_NAME_LIST;
-
-    /**
-     * VIP标签ID列表,包含了员工和访客
-     */
-    private ArrayList<String> mVIPTagIdList = new ArrayList<>();
-
-
-    public TagService() {
-        /**
-         * 考勤
-         */
-        SIGNIN_TAG_NAME_LIST = new ArrayList<>();
-        SIGNIN_TAG_NAME_LIST.add("员工");
-        /**
-         * VIP
-         */
-        VIP_TAG_NAME_LIST = new ArrayList<>();
-        VIP_TAG_NAME_LIST.add("VIP");
-        fetchTags();
-    }
-
-    /**
-     * 一分钟更新一次TAG
-     */
-    @Scheduled(fixedRate = 1000*60)
+    @Scheduled(fixedRate = 1000 * 10)
     public void fetchTags() {
         if (tokenService != null) {
-            if(token == null) {
+            if (token == null) {
                 token = tokenService.getToken();
             }
-            if(token != null) {
+            if (token != null) {
                 HttpHeaders headers = new HttpHeaders();
                 headers.add(HttpHeaders.ACCEPT, "application/json");
                 headers.add("Authorization", token);
@@ -119,7 +90,7 @@ public class TagService {
                         }
                     }
                 } catch (HttpClientErrorException errorException) {
-                    if(errorException.getStatusCode().value() == ResponseCode.TOKEN_INVALID) {
+                    if (errorException.getStatusCode().value() == ResponseCode.TOKEN_INVALID) {
                         //token失效,重新获取token后再进行数据请求
                         token = tokenService.getToken();
                         if (token != null) {
@@ -129,12 +100,7 @@ public class TagService {
                 }
             }
 
-            if (TAG_INITIAL_FINISHED && mExecutor != null) {
-                mExecutor.shutdown();
-                mExecutor = null;
-            }
         } else {
-
             ///等待tokenService初始化完成，TAG标签被其他很多service依赖，所以需要其先初始化完毕后
             if (mExecutor == null) {
                 mExecutor = new ThreadPoolTaskExecutor();
@@ -160,30 +126,28 @@ public class TagService {
     private void processTagResponse(String body) {
         ResponseModel responseModel = JSONObject.parseObject(body, ResponseModel.class);
         if (responseModel != null && responseModel.getResult() != null) {
-            ArrayList<Tag> tmpList = (ArrayList<Tag>) JSONArray.parseArray(responseModel.getResult(), Tag.class);
-            if (tmpList != null && tmpList.size() > 0) {
-                mAllTagList = tmpList;
-                ///清除之前需求考勤的tag列表
-                mSignInTagIdList.clear();
-                ///清除之前VIP的tag列表
-                mVIPTagIdList.clear();
+            List<Tag> tmpList =JSONArray.parseArray(responseModel.getResult(), Tag.class);
+            if (tmpList != null ) {
+                ArrayList<Tag> visitorTagList = new ArrayList<>();
+                ArrayList<Tag> staffTagList = new ArrayList<>();
                 for (Tag tag : tmpList) {
-                    for (int i = 0; i < VIP_TAG_NAME_LIST.size(); i++) {
-                        if (tag.getTag_name().equals(VIP_TAG_NAME_LIST.get(i))) {
-                            mVIPTagIdList.add(tag.getTag_id());
+                    for (String str : tag.getVisible_identity()) {
+                        if (Constant.VISITOR.equals(str)) {
+                            visitorTagList.add(tag);
                         }
-                    }
-
-                    for (int i = 0; i < SIGNIN_TAG_NAME_LIST.size(); i++) {
-                        if (tag.getTag_name().equals(SIGNIN_TAG_NAME_LIST.get(i))) {
-                            //由于在访客和考勤中都可以设置相同标签，考勤原则上只针对员工
-                            if (tag.getVisible_identity().contains(Constant.STAFF)) {
-                                mSignInTagIdList.add(tag.getTag_id());
-                            }
+                        if (Constant.STAFF.equals(str)) {
+                            staffTagList.add(tag);
                         }
                     }
                 }
-                TAG_INITIAL_FINISHED = true;
+                if(this.allTagList.size()!=tmpList.size()){
+                    logger.info("The number of allTagList：{} ==> {}", this.allTagList.size(), tmpList.size());
+                    this.allTagList = tmpList;
+                    logger.info("The number of visitorTagList：{} ==> {}", this.visitorTagList.size(), visitorTagList.size());
+                    this.visitorTagList = visitorTagList;
+                    logger.info("The number of staffTagList：{} ==> {}", this.staffTagList.size(), staffTagList.size());
+                    this.staffTagList = staffTagList;
+                }
             }
         }
     }
@@ -211,19 +175,47 @@ public class TagService {
         }
     }
 
-    public ArrayList<String> getSignInTagIdList() {
-        return mSignInTagIdList;
+    public List<Tag> getAllTagList() {
+        return allTagList;
     }
 
-    public ArrayList<String> getVIPTagIdList() {
-        return mVIPTagIdList;
+    public List<Tag> getVisitorTagList() {
+        return visitorTagList;
     }
 
-    public ArrayList<Tag> getmAllTagList() {
-        return mAllTagList;
+    public List<Tag> getStaffTagList() {
+        return staffTagList;
     }
 
-    public boolean isTagInitialFinished() {
-        return TAG_INITIAL_FINISHED;
+    /**
+     * 根据机构名称获取 机构id
+     *
+     * @param stringList 机构名称集合
+     * @return 机构id集合
+     */
+    public ArrayList<String> getDepartmentId(String[] stringList) {
+        ArrayList<String> idList = new ArrayList<>();
+        for (String str : stringList) {
+            isExist(str);//判断标签是否存在，不存在则先新增
+            for (Tag tag : visitorTagList) {
+                if (str.equals(tag.getTag_name())) {
+                    idList.add(tag.getTag_id());
+                }
+            }
+        }
+        return idList;
+    }
+
+    public void isExist(String tagName) {
+        boolean isExist = false;
+        for (Tag tag : visitorTagList) {
+            if (tagName.equals(tag.getTag_name())) {
+                isExist = true;
+            }
+        }
+        if (!isExist) {
+            createTag(tagName, Constant.VISITOR);
+            fetchTags();
+        }
     }
 }

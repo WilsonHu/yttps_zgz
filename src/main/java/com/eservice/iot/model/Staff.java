@@ -3,6 +3,7 @@ package com.eservice.iot.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 员工modal
@@ -15,17 +16,39 @@ public class Staff {
     @JsonProperty("upload_time")
     private Integer uploadTime;
     @JsonProperty("person_information")
-    private PersonInformation personInformation;
+    private PersonInformation person_information;
     @JsonProperty("face_list")
     private List<FaceListBean> face_list;
     @JsonProperty("identity")
     private String identity;
     @JsonProperty("meta")
-    private String meta;
+    private Object meta;
     @JsonProperty("scene_image_id")
     private String scene_image_id;
     @JsonProperty("staff_id")
     private String staffId;
+    @JsonProperty("card_numbers")
+    private List<String> card_numbers;
+    @JsonProperty("face_image_content_list")
+    private List<String> face_image_content_list;
+
+    private String floorName;
+
+    public String getFloorName() {
+        return floorName;
+    }
+
+    public void setFloorName(String floorName) {
+        this.floorName = floorName;
+    }
+
+    public List<String>  getFace_image_content_list() {
+        return face_image_content_list;
+    }
+
+    public void setFace_image_content_list(List<String>  face_image_content_list) {
+        this.face_image_content_list = face_image_content_list;
+    }
 
     public List<String> getTag_id_list() {
         return tag_id_list;
@@ -43,12 +66,12 @@ public class Staff {
         this.uploadTime = uploadTime;
     }
 
-    public PersonInformation getPersonInformation() {
-        return personInformation;
+    public PersonInformation getPerson_information() {
+        return person_information;
     }
 
-    public void setPersonInformation(PersonInformation personInformation) {
-        this.personInformation = personInformation;
+    public void setPerson_information(PersonInformation person_information) {
+        this.person_information = person_information;
     }
 
     public List<FaceListBean> getFace_list() {
@@ -67,11 +90,11 @@ public class Staff {
         this.identity = identity;
     }
 
-    public String getMeta() {
+    public Object getMeta() {
         return meta;
     }
 
-    public void setMeta(String meta) {
+    public void setMeta(Object meta) {
         this.meta = meta;
     }
 
@@ -91,6 +114,14 @@ public class Staff {
         this.staffId = staffId;
     }
 
+    public List<String> getCard_numbers() {
+        return card_numbers;
+    }
+
+    public void setCard_numbers(List<String> card_numbers) {
+        this.card_numbers = card_numbers;
+    }
+
     /**
      * 目前判断相同的条件是人名、电话都不变
      * @param obj
@@ -101,18 +132,18 @@ public class Staff {
         if (obj instanceof Staff) {
             Staff person = (Staff) obj;
             boolean same = true;
-            if(person.personInformation.getName() != null) {
-                if(!person.personInformation.getName().equals(personInformation.getName())) {
+            if(person.person_information.getName() != null) {
+                if(!person.person_information.getName().equals(person_information.getName())) {
                     same = false;
                 }
             }
-            if(same && (person.personInformation.getPhone() != null) ) {
-                if(!person.personInformation.getPhone().equals(personInformation.getPhone())) {
+            if(same && (person.person_information.getPhone() != null) ) {
+                if(!person.person_information.getPhone().equals(person_information.getPhone())) {
                     same = false;
                 }
             }
-            if(same && (person.personInformation.getId() != null) ) {
-                if(!person.personInformation.getId().equals(personInformation.getId())) {
+            if(same && (person.person_information.getId() != null) ) {
+                if(!person.person_information.getId().equals(person_information.getId())) {
                     same = false;
                 }
             }

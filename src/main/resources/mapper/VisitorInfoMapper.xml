@@ -13,11 +13,14 @@
     <result column="status" jdbcType="INTEGER" property="status" />
   </resultMap>
 
-  <select id="search" parameterType="java.lang.String" resultMap="BaseResultMap">
+  <select id="search" parameterType="java.util.Map" resultMap="BaseResultMap">
       SELECT * FROM `visitor_info`
       WHERE 1=1
     <if test="dateTime != null and dateTime != ''">
       and dateTime = '${dateTime}'
+    </if>
+    <if test="status != null">
+      and status = '${status}'
     </if>
   </select>
 </mapper>

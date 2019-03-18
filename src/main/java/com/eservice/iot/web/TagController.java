@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.xml.soap.Text;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class Description: xxx
@@ -32,7 +33,7 @@ public class TagController {
     public Result list(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "0") Integer size) {
 
         if (tagService != null) {
-            return ResultGenerator.genSuccessResult(tagService.getmAllTagList());
+            return ResultGenerator.genSuccessResult(tagService.getAllTagList());
         } else {
             return ResultGenerator.genSuccessResult(new ArrayList<>());
         }
@@ -42,9 +43,9 @@ public class TagController {
     public Result add(@RequestParam String name, @RequestParam String identity) {
 
         if (tagService != null && name != null && identity != null) {
-            if ( tagService.getmAllTagList().size() > 0) {
-                for (int i = 0; i <tagService.getmAllTagList().size(); i++) {
-                    if(tagService.getmAllTagList().get(i).getTag_name().equals(name)) {
+            if ( tagService.getAllTagList().size() > 0) {
+                for (int i = 0; i <tagService.getAllTagList().size(); i++) {
+                    if(tagService.getAllTagList().get(i).getTag_name().equals(name)) {
                         return ResultGenerator.genFailResult("Tag名称已存在！");
                     }
                 }
@@ -71,7 +72,7 @@ public class TagController {
             if(tagService == null) {
                 return ResultGenerator.genFailResult("标签服务没有启动！");
             } else {
-                ArrayList<Tag> allTagList = tagService.getmAllTagList();
+                List<Tag> allTagList = tagService.getAllTagList();
                 String targetTagId = null;
                 for (Tag item: allTagList) {
                     if(item.getTag_name().equals(name)) {
@@ -97,7 +98,7 @@ public class TagController {
                         if(staffService.deleteStaff(allDeleteStaffList.get(i).getStaffId())) {
                             deleteCount++;
                         } else {
-                            failedList.add(allDeleteStaffList.get(i).getPersonInformation().getName());
+                            failedList.add(allDeleteStaffList.get(i).getPerson_information().getName());
                         }
                     }
                     resultStr += "; 删除成功staff总数：" + deleteCount;

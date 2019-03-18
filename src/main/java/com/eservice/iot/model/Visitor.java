@@ -31,6 +31,24 @@ public class Visitor {
     private String visitor_id;
     private List<FaceListBean> face_list;
     private List<String> tag_id_list;
+    private List<String> card_numbers;
+    private String face_image_content;
+
+    public List<String> getCard_numbers() {
+        return card_numbers;
+    }
+
+    public void setCard_numbers(List<String> card_numbers) {
+        this.card_numbers = card_numbers;
+    }
+
+    public String getFace_image_content() {
+        return face_image_content;
+    }
+
+    public void setFace_image_content(String face_image_content) {
+        this.face_image_content = face_image_content;
+    }
 
     public String getIdentity() {
         return identity;

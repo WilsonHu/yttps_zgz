@@ -130,8 +130,7 @@
 </template>
 
 <script>
-    import Vue from 'vue'
-    var _this
+    var _this;
     $(function () {
         $('#modifyPwdDialog').on('hidden.bs.modal', function () {
             _this.onConfirmLogOut();
@@ -310,11 +309,6 @@
         filters: {},
         created: function () {
             this.userinfo = JSON.parse(sessionStorage.getItem('user'));
-        },
-        mounted: function () {
-        },
-        destroyed: function () {
-            window.clearInterval(this.reduceTime)
         }
     }
 

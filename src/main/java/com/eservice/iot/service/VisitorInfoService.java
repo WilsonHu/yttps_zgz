@@ -10,5 +10,5 @@ import java.util.List;
 * @date 2019/03/13.
 */
 public interface VisitorInfoService extends Service<VisitorInfo> {
-    List<VisitorInfo> search (String date);
+    List<VisitorInfo> search (String date,Integer status);
 }

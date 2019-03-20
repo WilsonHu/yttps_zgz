@@ -42,14 +42,16 @@
                                    @click="handleAdd" >导入
                         </el-button >
                     </el-col>
+
                     <el-col :span="1" style="margin-left: 25px" >
                         <el-button style="float: right;"
                                    icon="el-icon-upload2"
                                    size="normal"
                                    type="primary"
-                                   @click="" >导出
+                                   @click="exExecle" >导出
                         </el-button >
                     </el-col>
+
                     <el-col :span="3">
                         <strong >今日预约人数：{{visitor}}</strong>
                     </el-col>
@@ -208,6 +210,24 @@
             }
         },
         methods: {
+            exExecle() {
+                $.ajax({
+                    url: HOST + "staff/exportRecord",
+                    type: "POST",
+                    dataType: "json",
+                    data: _this.filters,
+                    success: function (data) {
+                        if (data.code == 200) {
+                            var a = document.createElement("a");
+                            a.href = "http://" + data.data;
+                            a.click();
+                        }
+                    },
+                    error: function (data) {
+                        showMessage(_this, '服务器访问出错', 0);
+                    }
+                })
+            },
             audioError(){
                 document.getElementById('error').play();
             },

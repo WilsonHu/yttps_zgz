@@ -49,7 +49,7 @@ public class VisitorInfoController {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     @PostMapping("/count")
-    public Result count(@RequestParam String chooseTime) {
+    public Result count() {
         int status0=0;
         int status1=0;
  /*       String dateTime=null;

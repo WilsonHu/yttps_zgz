@@ -1,5 +1,7 @@
 <template xmlns:v-on="http://www.w3.org/1999/xhtml" xmlns:v-bind="http://www.w3.org/1999/xhtml" >
     <div >
+        <audio id="error"  src="./src/assets/audio/error.mp3"></audio>
+        <audio id="success"  src="./src/assets/audio/success.mp3"></audio>
         <el-col class="well well-lg" style="background-color: white;">
             <el-row>
                 <el-col>
@@ -10,8 +12,7 @@
                                         v-model="filters.chooseTime"
                                         align="right"
                                         type="date"
-                                        placeholder="选择日期"
-                                        :picker-options="pickerOptions1">
+                                        placeholder="选择日期" >
                                 </el-date-picker>
                             </el-form-item>
                         </el-col>
@@ -25,7 +26,7 @@
                         </el-col>
                     </el-form>
 
-                    <el-col :span="1" style="margin-left: 25px">
+                    <el-col :span="2" >
                         <el-button
 		                        icon="el-icon-search"
 		                        size="normal"
@@ -33,13 +34,31 @@
 		                        @click="search" >搜索
                         </el-button >
                     </el-col >
-
-                    <el-button style="float: right;"
-                               icon="el-icon-plus"
-                               size="normal"
-                               type="primary"
-                               @click="handleAdd" >导入
-                    </el-button >
+                    <el-col :span="1" style="margin-left: 20px" >
+                        <el-button style="float: right;"
+                                   icon="el-icon-download"
+                                   size="normal"
+                                   type="primary"
+                                   @click="handleAdd" >导入
+                        </el-button >
+                    </el-col>
+                    <el-col :span="1" style="margin-left: 25px" >
+                        <el-button style="float: right;"
+                                   icon="el-icon-upload2"
+                                   size="normal"
+                                   type="primary"
+                                   @click="" >导出
+                        </el-button >
+                    </el-col>
+                    <el-col :span="3">
+                        <strong >今日预约人数：{{visitor}}</strong>
+                    </el-col>
+                    <el-col :span="2"  >
+                        <strong  >未访人数：{{status0}}</strong>
+                    </el-col>
+                    <el-col :span="2"  >
+                        <strong >来访人数：{{status1}}</strong>
+                    </el-col>
 
                     <el-table
 		                    v-loading="loadingUI"
@@ -75,7 +94,7 @@
                                 align="center"
                                 prop="datetime"
                                 width="300"
-                                label="预约日期" >
+                                label="到访日期" >
                         </el-table-column >
                         <el-table-column
                                 align="center"
@@ -88,17 +107,11 @@
                             </template>
                         </el-table-column >
 
-<!--                        <el-table-column
+                      <el-table-column
                                 align="center"
                                 label="操作"
                                 width="200" >
                             <template scope="scope" >
-                                <el-button
-		                                size="small"
-                                        icon="el-icon-edit"
-                                        type="primary"
-		                                @click="handleEdit(scope.$index, scope.row)" >编辑
-                                </el-button >
                                 <el-button
 		                                size="small"
 		                                type="danger"
@@ -107,7 +120,7 @@
 		                                @click="handleDelete(scope.$index, scope.row)" >删除
                                 </el-button >
                             </template >
-                        </el-table-column >-->
+                        </el-table-column >
 
                     </el-table >
 
@@ -125,8 +138,7 @@
                 </el-col >
             </el-row >
         </el-col >
-
-      <el-dialog title="导入Excel文件" :visible.sync="addDialogVisible" width="40%">
+        <el-dialog  :visible.sync="addDialogVisible" width="500px">
             <el-upload
                     class="upload-demo"
                     ref="upload"
@@ -145,45 +157,15 @@
                 <el-button type="success" @click="submitUpload" icon="el-icon-check">确 定</el-button >
             </div >
         </el-dialog >
-
-<!--
-        <el-dialog title="编辑公司" :visible.sync="modifyDialogVisible" width="35%">
-            <el-form :model="modifyForm" >
-                <el-col :span="24" >
-                    <el-form-item label="公司名称：" :label-width="formLabelWidth">
-                        <el-input v-model="modifyForm.customerName" @change="onChange" :disabled="modifyForm.account == 'admin'" ></el-input >
-                    </el-form-item>
-                </el-col>
-            </el-form >
-            <el-alert v-if="isError" style="margin-top: 10px;padding: 5px;"
-                      :title="errorMsg"
-                      type="error"
-                      :closable="false"
-                      show-icon >
-            </el-alert >
-            <div class="dialog-footer" style="margin-top: 30px" >
-                <el-button @click="" icon="el-icon-close" type="danger">取 消</el-button >
-                <el-button type="primary" @click="onEidt" icon="el-icon-check">确 定</el-button >
-            </div >
-        </el-dialog >
-
         <el-dialog title="提示" :visible.sync="deleteConfirmVisible"  width="30%">
-            <span >确认要删除[ <b >{{selectedItem.customerName}}</b > ]吗？</span >
+            <span >确认要删除[ <b >{{selectedItem.name}}</b > ]吗？</span >
             <span slot="footer" class="dialog-footer" >
 	    <el-button @click="deleteConfirmVisible = false" icon="el-icon-close" >取 消</el-button >
 	    <el-button type="primary" @click="onConfirmDelete" icon="el-icon-check">确 定</el-button >
 	  </span >
         </el-dialog >
--->
-
     </div >
 </template >
-
-<style>
-    .upload-demo input{
-        display: none;
-    }
-</style>
 
 <script >
     var _this;
@@ -198,11 +180,6 @@
                 idCard:'',
                 face_image:'',
                 photo:'',
-                pickerOptions1: {
-                    disabledDate(time) {
-                        return time.getTime() > Date.now();
-                    }
-                },
                // isError: false,
                // errorMsg: '',
                 totalRecords: 0,
@@ -220,17 +197,25 @@
                     createTime:"",
                     customerName: "",
                 },
-                formLabelWidth: '100px',
-
                 filters: {
                     chooseTime:"",
                     status:""
                 },
                 loadingUI: false,
+                status0: 0,
+                status1: 0,
+                visitor: 0
             }
         },
         methods: {
+            audioError(){
+                document.getElementById('error').play();
+            },
+            audioSuccess(){
+                document.getElementById('success').play();
+            },
             openSuccess() {
+                _this.audioSuccess();
                 _this.search();
                 _this.$notify({
                     dangerouslyUseHTMLString: true,
@@ -245,27 +230,27 @@
                 });
             },
             openError() {
+                _this.audioError();
                 _this.$notify({
                     dangerouslyUseHTMLString: true,
                     message:
                     '<span>姓名：</span><strong>'+_this.name+'</strong></br>' +
                     '<span>身份证：</span><strong>'+_this.idCard+'</strong></br>' +
-                    '<span>身份证照：</span><img src='+_this.photo+'></br>'+
-                    '<span>现场照片：</span><img style="margin-top: 5px;width: 180px;height: 180px" src='+_this.face_image+'>' ,
+                    '<img src='+_this.photo+'></br>'+
+                    '<img style="margin-top: 5px;width: 260px;height: 260px" src='+_this.face_image+'>' ,
                     type: 'error',
                     duration: 0,
                     position: 'top-left',
                     offset: 50
                 });
             },
-
             submitUpload() {
                 this.$refs.upload.submit();
             },//开始上传文件
             beforeAvatarUpload(file){
 
-                console.log('文件类型：'+file.type);
-                console.log('文件大小：'+file.size+'B');
+                //console.log('文件类型：'+file.type);
+                //console.log('文件大小：'+file.size+'B');
 
                 const isXls = file.type === 'application/vnd.ms-excel';
                 const isXlsx = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -332,7 +317,52 @@
                // this.errorMsg = '';
                 this.addDialogVisible = true;
             },//显示窗口
-        },
+            handleDelete(index, item) {
+                this.selectedItem = copyObject(item);
+                if (this.selectedItem) {
+                    _this.deleteConfirmVisible = true;
+                }
+            },
+            onConfirmDelete: function () {
+                _this.deleteConfirmVisible = false;
+                $.ajax({
+                    url: HOST + "visitor/info/delete",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {"id":this.selectedItem.id},
+                    success: function (data) {
+                        if (data.data == true) {
+                            _this.onSelectUsers();
+                            showMessage(_this, '删除成功', 1);
+                        } else {
+                            showMessage(_this, '删除失败', 0);
+                        }
+                    },
+                    error: function (data) {
+                        showMessage(_this, '服务器访问出错', 0);
+                    }
+                })
+            },
+            onVisitorCount: function () {
+                _this.deleteConfirmVisible = false;
+                $.ajax({
+                    url: HOST + "visitor/info/count",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {"chooseTime":_this.filters.chooseTime},
+                    success: function (data) {
+
+                        var  data=JSON.parse(data.data)
+                        _this.status0=data.status0;
+                        _this.status1=data.status1;
+                        _this.visitor=data.visitor;
+                    },
+                    error: function (data) {
+                        showMessage(_this, '服务器访问出错', 0);
+                    }
+                })
+            }
+            },
         computed: {},
         filters: { },
         created: function () {
@@ -344,6 +374,7 @@
         },
         mounted: function () {
             this.onSelectUsers();
+            this.onVisitorCount();
         },
     }
 
@@ -384,22 +415,22 @@
     });
 
     function onConnect() {
-        console.log("connect successfully");
+        //console.log("connect successfully");
         if (mqttReconnectInterval != null) {
             clearInterval(mqttReconnectInterval);
             mqttReconnectInterval = null;
         }
         for (let item of ServerTOPIC)//订阅主题
         {
-            console.log(`subscribed server topic: ${item}`);
+            //console.log(`subscribed server topic: ${item}`);
             client.subscribe(item);
         }
     }
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
-            console.log("连接已断开");
-            console.log("onConnectionLost:" + responseObject.errorMessage);
+           // console.log("连接已断开");
+           // console.log("onConnectionLost:" + responseObject.errorMessage);
             mqttReconnectInterval = setInterval(() => {
                 client.connect(options);
                 client.onConnectionLost = onConnectionLost;//注册连接断开处理事件
@@ -409,12 +440,12 @@
     }
 
     function onMessageArrived(message) {
-        console.log("收到消息:" + message.payloadString);
-        console.log("主题：" + message.destinationName);
+       // console.log("收到消息:" + message.payloadString);
+      //  console.log("主题：" + message.destinationName);
         var data = null;
         try {
             data = jQuery.parseJSON(message.payloadString);
-            console.log("解析出来的：data：" + JSON.stringify(data));
+           // console.log("解析出来的：data：" + JSON.stringify(data));
         } catch (e) {
             console.log(e);
         }
@@ -431,12 +462,15 @@
                     _this.openSuccess();
                     break;
                 default:
-                    console.log("未知主题消息...")
+                    //console.log("未知主题消息...")
                     break;
             }
         }
     }
 </script >
-<style >
 
-</style >
+<style>
+    .upload-demo input{
+        display: none;
+    }
+</style>

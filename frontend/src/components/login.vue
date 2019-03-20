@@ -2,7 +2,7 @@
     <div class="bg">
         <div class="login-container">
 
-            <h3 class="title">宝地广场</h3>
+            <h3 class="title">中国尊</h3>
             <el-form :model="ruleForm2" :rules="rules2" ref="ruleForm2" label-position="left" label-width="60px">
 
                 <el-form-item label="账号:" prop="account">

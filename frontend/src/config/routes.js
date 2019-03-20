@@ -43,7 +43,7 @@ export default
                         path: '/home/system/customer_manage',
                         component: CustomerManage,
                         name: 'customer_manage',
-                        meta: '公司管理'
+                        meta: '访客管理'
                     }
                 ]
             },

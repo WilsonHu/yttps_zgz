@@ -24,24 +24,44 @@ public abstract class AbstractService<T> implements Service<T> {
         modelClass = (Class<T>) pt.getActualTypeArguments()[0];
     }
 
-    public void save(T model) {
-        mapper.insertSelective(model);
+    public boolean save(T model) {
+        if(mapper.insertSelective(model)>0){
+            return true;
+        }else {
+            return false;
+        }
     }
 
-    public void save(List<T> models) {
-        mapper.insertList(models);
+    public boolean save(List<T> models) {
+        if(mapper.insertList(models)>0){
+            return true;
+        }else {
+            return false;
+        }
     }
 
-    public void deleteById(Integer id) {
-        mapper.deleteByPrimaryKey(id);
+    public boolean deleteById(Integer id) {
+        if(mapper.deleteByPrimaryKey(id)>0){
+            return true;
+        }else {
+            return false;
+        }
     }
 
-    public void deleteByIds(String ids) {
-        mapper.deleteByIds(ids);
+    public boolean deleteByIds(String ids) {
+        if(mapper.deleteByIds(ids)>0){
+            return true;
+        }else {
+            return false;
+        }
     }
 
-    public void update(T model) {
-        mapper.updateByPrimaryKeySelective(model);
+    public boolean update(T model) {
+        if(mapper.updateByPrimaryKeySelective(model)>0){
+            return true;
+        }else {
+            return false;
+        }
     }
 
     public T findById(Integer id) {

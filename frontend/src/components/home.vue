@@ -315,7 +315,6 @@
 </script>
 <style>
     .bg {
-        overflow-y: scroll;
         height: 100%;
     }
 

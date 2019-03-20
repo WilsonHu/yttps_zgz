@@ -37,6 +37,8 @@ public class ExcelController {
 
     @Value("${excel_path}")
     private String EXCEL_PATH;
+    @Value("${broker-host}")
+    private String BROKER_HOST;
 
     @Resource
     private AccessService accessService;
@@ -100,7 +102,7 @@ public class ExcelController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return ResultGenerator.genSuccessResult(EXCEL_PATH + fileName);
+            return ResultGenerator.genSuccessResult(BROKER_HOST  + ":8080/"+ fileName);
         } else {
             return ResultGenerator.genSuccessResult("考勤记录为：0");
         }

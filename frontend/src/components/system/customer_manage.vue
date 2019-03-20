@@ -218,10 +218,8 @@
                     data: _this.filters,
                     success: function (data) {
                         if (data.code == 200) {
-                            var a = document.createElement("a");
-                            a.href = "http://" + data.data;
-                            a.click();
-                        }
+                            console.log(data.data);
+                         }
                     },
                     error: function (data) {
                         showMessage(_this, '服务器访问出错', 0);

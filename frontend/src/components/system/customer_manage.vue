@@ -141,7 +141,7 @@
             <el-upload
                     class="upload-demo"
                     ref="upload"
-                    :action="ACTION_ULR"
+                    action="http://10.0.0.7:9090/visitor/info/add"
                     name="multipartFile"
                     :limit="1"
                     :auto-upload="false"
@@ -441,22 +441,22 @@
     });
 
     function onConnect() {
-        console.log("connect successfully");
+        //console.log("connect successfully");
         if (mqttReconnectInterval != null) {
             clearInterval(mqttReconnectInterval);
             mqttReconnectInterval = null;
         }
         for (let item of ServerTOPIC)//订阅主题
         {
-            console.log(`subscribed server topic: ${item}`);
+            //console.log(`subscribed server topic: ${item}`);
             client.subscribe(item);
         }
     }
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
-           console.log("连接已断开");
-           console.log("onConnectionLost:" + responseObject.errorMessage);
+           // console.log("连接已断开");
+           // console.log("onConnectionLost:" + responseObject.errorMessage);
             mqttReconnectInterval = setInterval(() => {
                 client.connect(options);
                 client.onConnectionLost = onConnectionLost;//注册连接断开处理事件

@@ -2,6 +2,15 @@
     <div >
         <audio id="error"  src="./src/assets/audio/error.mp3"></audio>
         <audio id="success"  src="./src/assets/audio/success.mp3"></audio>
+        <el-col :span="3" style="margin-bottom: 10px">
+            <strong >今日预约人数：{{visitor}}</strong>
+        </el-col>
+        <el-col :span="3"  style="margin-bottom: 10px">
+            <strong  >未访人数：{{status0}}</strong>
+        </el-col>
+        <el-col :span="3"  style="margin-bottom: 10px" >
+            <strong >来访人数：{{status1}}</strong>
+        </el-col>
         <el-col class="well well-lg" style="background-color: white;">
             <el-row>
                 <el-col>
@@ -27,7 +36,7 @@
                         </el-col>
                     </el-form>
 
-                    <el-col :span="2" >
+                    <el-col :span="4" >
                         <el-button
 		                        icon="el-icon-search"
 		                        size="normal"
@@ -35,31 +44,20 @@
 		                        @click="search" >搜索
                         </el-button >
                     </el-col >
-                    <el-col :span="1" style="margin-left: 20px" >
-                        <el-button style="float: right;"
+                    <el-col :span="4" :offset="6">
+                        <el-button
                                    icon="el-icon-download"
                                    size="normal"
                                    type="primary"
                                    @click="handleAdd" >导入
                         </el-button >
-                    </el-col>
 
-                    <el-col :span="1" style="margin-left: 25px" >
                         <el-button style="float: right;"
                                    icon="el-icon-upload2"
                                    size="normal"
                                    type="primary"
                                    @click="exportRecord=true" >导出
                         </el-button >
-                    </el-col>
-                    <el-col :span="3">
-                        <strong >今日预约人数：{{visitor}}</strong>
-                    </el-col>
-                    <el-col :span="2"  >
-                        <strong  >未访人数：{{status0}}</strong>
-                    </el-col>
-                    <el-col :span="2"  >
-                        <strong >来访人数：{{status1}}</strong>
                     </el-col>
                     <el-table
 		                    v-loading="loadingUI"
@@ -141,8 +139,8 @@
             <el-upload
                     class="upload-demo"
                     ref="upload"
-                    action="http://10.0.0.7:9090/visitor/info/add"
                     name="multipartFile"
+                    :action="fileURL"
                     :limit="1"
                     :auto-upload="false"
                     :before-upload="beforeAvatarUpload"
@@ -158,10 +156,10 @@
         </el-dialog >
         <el-dialog title="提示" :visible.sync="deleteConfirmVisible"  width="30%">
             <span >确认要删除[ <b >{{selectedItem.name}}</b > ]吗？</span >
-            <span  class="dialog-footer" >
-	    <el-button   @click="deleteConfirmVisible = false" icon="el-icon-close" >取 消</el-button >
-	    <el-button type="primary" @click="onConfirmDelete" icon="el-icon-check">确 定</el-button >
-	  </span >
+            <div  class="dialog-footer" style="margin-top: 30px" >
+	            <el-button   @click="deleteConfirmVisible = false" icon="el-icon-close" type="danger">取 消</el-button >
+	            <el-button type="primary" @click="onConfirmDelete" icon="el-icon-check">确 定</el-button >
+            </div >
         </el-dialog >
         <el-dialog title="请选择导出范围" :visible.sync="exportRecord"  width="25%">
             <span  class="dialog-footer" >
@@ -182,6 +180,7 @@
         data () {
             _this = this;
             return {
+                fileURL:FileURL,
                 name:'',
                 idCard:'',
                 face_image:'',
@@ -224,6 +223,9 @@
                     success: function (data) {
                         if (data.code == 200) {
                             _this.$message.success('文件导出成功！');
+                            var a = document.createElement("a");
+                            a.href = data.data;
+                            a.click();
                             console.log(data.data);
                          }
                     },
@@ -287,17 +289,18 @@
 
             },//文件上传前执行
             successUpload(response, file, fileList){
-                if(response.data=='true'){
-                    _this.$message.success('文件上传成功！');
+                var data=JSON.parse(response.data);
+                if(data.code==200){
+                    _this.$message.success(data.message);
                     _this.addDialogVisible = false;
                     _this.onSelectUsers();
                 }else{
-                    _this.$message.error(response.data);
+                    _this.$message.error(data.message);
                 }
                 _this.$refs.upload.clearFiles();
             },//文件上传成功方法
             errorUpload(err, file, fileList){
-                _this.$message.error('文件上传失败，请检查服务器是否运行正常！');
+                _this.$message.error('上传失败，请检查服务器是否运行正常！');
             },//文件上传失败
             exceedFile(){
                 _this.$message.error('每次只能上传一个文件！');
@@ -328,9 +331,9 @@
                         if (data.code == 200) {
                             _this.totalRecords = data.data.total;
                             _this.tableData = data.data.list;
-                            _this.startRow = data.data.startRow;
                         }
                         _this.loadingUI = false;
+                        _this.startRow = data.data.startRow;
                     },
                     error: function (data) {
                         showMessage(_this, '服务器访问出错', 0);
@@ -441,22 +444,22 @@
     });
 
     function onConnect() {
-        //console.log("connect successfully");
+        console.log("connect successfully");
         if (mqttReconnectInterval != null) {
             clearInterval(mqttReconnectInterval);
             mqttReconnectInterval = null;
         }
         for (let item of ServerTOPIC)//订阅主题
         {
-            //console.log(`subscribed server topic: ${item}`);
+            console.log(`subscribed server topic: ${item}`);
             client.subscribe(item);
         }
     }
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
-           // console.log("连接已断开");
-           // console.log("onConnectionLost:" + responseObject.errorMessage);
+           console.log("连接已断开");
+           console.log("onConnectionLost:" + responseObject.errorMessage);
             mqttReconnectInterval = setInterval(() => {
                 client.connect(options);
                 client.onConnectionLost = onConnectionLost;//注册连接断开处理事件
@@ -499,4 +502,5 @@
     .upload-demo input{
         display: none;
     }
+
 </style>

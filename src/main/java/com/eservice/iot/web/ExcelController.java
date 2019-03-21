@@ -65,13 +65,6 @@ public class ExcelController {
             e.printStackTrace();
         }
 
-/*        //获取本地ip地址
-        try {
-            InetAddress ip = InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }*/
-
         //获取进入记录
         Map<String,Date> inTimes = accessService.queryUserIn(startTime, endTime, identity);
         //获取出去记录
@@ -81,9 +74,9 @@ public class ExcelController {
 
         if (userTimes.size() > 0) {
             HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet(identity+"进出记录");
+            HSSFSheet sheet = workbook.createSheet("进出记录");
             //设置要导出的文件的名字
-            String fileName ="人员进出时间记录-" + format.format(new Date()) + ".xlsx";
+            String fileName =identity+"进出时间记录-" + format.format(new Date()) + ".xlsx";
             //新增数据行，并且设置单元格数据
             insertDataInSheet(sheet, userTimes);
             try {
@@ -102,7 +95,7 @@ public class ExcelController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return ResultGenerator.genSuccessResult(BROKER_HOST  + ":8080/"+ fileName);
+            return ResultGenerator.genSuccessResult(BROKER_HOST  + ":8080/yttps/"+ fileName);
         } else {
             return ResultGenerator.genSuccessResult("考勤记录为：0");
         }

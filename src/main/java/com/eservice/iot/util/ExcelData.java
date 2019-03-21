@@ -33,7 +33,7 @@ public class ExcelData {
         //获得Workbook工作薄对象
         Workbook workbook = getWorkBook(file);
         //创建返回对象，把每行中的值作为一个数组，所有行作为一个集合返回
-        List<String[]> list = new ArrayList<String[]>();
+        List<String[]> list = new ArrayList<>();
         if(workbook != null){
             for(int sheetNum = 0;sheetNum < workbook.getNumberOfSheets();sheetNum++){
                 //获得当前sheet工作表
@@ -45,24 +45,52 @@ public class ExcelData {
                 int firstRowNum  = sheet.getFirstRowNum();
                 //获得当前sheet的结束行
                 int lastRowNum = sheet.getLastRowNum();
+                //有效列的个数
+                int cellCount=0;
+                Row row = sheet.getRow(firstRowNum);
+                if(row!=null){
+                    //获得第一行的开始列
+                    int firstCellNum = row.getFirstCellNum();
+                    //获得第一行的列数
+                    int lastCellNum = row.getLastCellNum();
+                    //循环第一行，只统计连续不为空的标题，遇到空值就终止
+                    for(int cellNum = firstCellNum; cellNum < lastCellNum;cellNum++){
+                        Cell cell = row.getCell(cellNum);
+                        String value = getCellValue(cell).trim();
+                        if(value!=null&&!"".equalsIgnoreCase(value)){
+                            cellCount++;
+                        }else {
+                            break;
+                        }
+                    }
+                }
                 //循环除了第一行的所有行
                 for(int rowNum = firstRowNum+1;rowNum <= lastRowNum;rowNum++){
                     //获得当前行
-                    Row row = sheet.getRow(rowNum);
+                     row = sheet.getRow(rowNum);
                     if(row == null){
                         continue;
                     }
                     //获得当前行的开始列
                     int firstCellNum = row.getFirstCellNum();
-                    //获得当前行的列数
-                    int lastCellNum = row.getLastCellNum();
-                    String[] cells = new String[row.getLastCellNum()];
-                    //循环当前行,跳过第一列的
-                    for(int cellNum = firstCellNum; cellNum < lastCellNum;cellNum++){
+                    //统计每行空值的个数
+                    int nullCount=0;
+                    //存储每行的数据
+                    String[] cells = new String[cellCount];
+                    //循环当前行
+                    for(int cellNum = firstCellNum; cellNum < cellCount;cellNum++){
                         Cell cell = row.getCell(cellNum);
                         cells[cellNum] = getCellValue(cell).trim();
+                        if(cells[cellNum].equalsIgnoreCase("")){
+                            nullCount++;
+                        }
                     }
-                    list.add(cells);
+                    //如果当前行的空值列多余或者等与有效列的个数，则视为从当前行开始之后，没数据
+                    if(firstCellNum>0||nullCount>=cellCount){
+                        break;
+                    }else{
+                        list.add(cells);
+                    }
                 }
             }
         }
@@ -86,6 +114,7 @@ public class ExcelData {
             log.error(fileName + "不是excel文件");
         }
     }
+
     public static  Workbook getWorkBook(MultipartFile file) {
         //获得文件名
         String fileName = file.getOriginalFilename();
@@ -153,16 +182,15 @@ public class ExcelData {
             if (cell.getCellStyle().getDataFormat() == HSSFDataFormat.getBuiltinFormat("h:mm")) {
                 sdf = new SimpleDateFormat("HH:mm");
             } else {// 日期
-                sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                sdf = new SimpleDateFormat("yyyy-MM-dd");
             }
             Date date = cell.getDateCellValue();
             result = sdf.format(date);
         } else if (cell.getCellStyle().getDataFormat() == 58) {
             // 处理自定义日期格式：m月d日(通过判断单元格的格式id解决，id的值是58)
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             double value = cell.getNumericCellValue();
-            Date date = org.apache.poi.ss.usermodel.DateUtil
-                    .getJavaDate(value);
+            Date date = org.apache.poi.ss.usermodel.DateUtil.getJavaDate(value);
             result = sdf.format(date);
         } else {
             double value = cell.getNumericCellValue();
@@ -175,7 +203,6 @@ public class ExcelData {
             }
             result = format.format(value);
         }
-
         return result;
     }
 }

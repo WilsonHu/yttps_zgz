@@ -32,7 +32,7 @@ public class VisitorInfo {
      * 日期
      */
     @Column(name = "dateTime")
-    private Date datetime;
+    private String datetime;
 
     /**
      * 是否来过，0、没来，1、来过
@@ -116,7 +116,7 @@ public class VisitorInfo {
      *
      * @return dateTime - 日期
      */
-    public Date getDatetime() {
+    public String getDatetime() {
         return datetime;
     }
 
@@ -125,7 +125,7 @@ public class VisitorInfo {
      *
      * @param datetime 日期
      */
-    public void setDatetime(Date datetime) {
+    public void setDatetime(String datetime) {
         this.datetime = datetime;
     }
 

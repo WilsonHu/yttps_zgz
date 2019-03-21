@@ -9,3 +9,4 @@ var ServerTOPIC = ["visitor/error","visitor/success"];
 var PARK_IMAGE_URL = "http://api.vaiwan.com:8081/image/";
 var SYSTEMNAME = "中国尊";
 var EveryPageNum = 10;
+var FileURL= HOST+"visitor/info/add";

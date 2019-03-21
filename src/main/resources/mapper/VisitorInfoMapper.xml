@@ -9,7 +9,7 @@
     <result column="name" jdbcType="VARCHAR" property="name" />
     <result column="IdCard" jdbcType="VARCHAR" property="idcard" />
     <result column="company" jdbcType="VARCHAR" property="company" />
-    <result column="dateTime" jdbcType="TIMESTAMP" property="datetime" />
+    <result column="dateTime" jdbcType="DATE" property="datetime" />
     <result column="status" jdbcType="INTEGER" property="status" />
   </resultMap>
 

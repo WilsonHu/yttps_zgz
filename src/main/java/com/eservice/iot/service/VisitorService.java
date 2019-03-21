@@ -132,7 +132,7 @@ public class VisitorService {
         personInformation.setName(visitorInfo.getName());
         personInformation.setIdentity_number(visitorInfo.getIdcard());
         personInformation.setVisit_time_type("1");
-        personInformation.setVisitee_name("某某");
+        personInformation.setVisitee_name("中国尊");
         visitor.setPerson_information(personInformation);
         visitor.setTag_id_list(tagService.getDepartmentId(new String[]{"访客",visitorInfo.getCompany()}));
         visitors.add(visitor);

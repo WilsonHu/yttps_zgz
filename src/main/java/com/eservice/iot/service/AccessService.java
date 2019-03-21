@@ -90,7 +90,8 @@ public class AccessService {
                         accessPassIn = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
                         if (accessPassIn != null) {
                             //移除不通过的数据
-                            for (AccessRecord accessRecord : accessPassIn) {
+                            for (int i=0;i<accessPassIn.size();i++) {
+                                AccessRecord accessRecord = accessPassIn.get(i);
                                 if (!accessRecord.getPass_result().equals("PASS")) {
                                     accessPassIn.remove(accessRecord);
                                 }
@@ -102,7 +103,6 @@ public class AccessService {
         } else {
             logger.error("Token is null, query accessPass error!");
         }
-
 
         if(accessPassIn.size()>0){
             //对数据，按姓名进行排序，确保姓名相同的人在一块
@@ -194,7 +194,8 @@ public class AccessService {
                         accessPassOut = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
                         if (accessPassOut != null) {
                             //移除不通过的数据
-                            for (AccessRecord accessRecord : accessPassOut) {
+                            for (int i=0;i<accessPassOut.size();i++) {
+                                AccessRecord accessRecord = accessPassOut.get(i);
                                 if (!accessRecord.getPass_result().equals("PASS")) {
                                     accessPassOut.remove(accessRecord);
                                 }

@@ -12,6 +12,7 @@
                                         v-model="filters.chooseTime"
                                         align="right"
                                         type="date"
+                                        format="yyyy-MM-dd"
                                         placeholder="选择日期" >
                                 </el-date-picker>
                             </el-form-item>
@@ -48,10 +49,9 @@
                                    icon="el-icon-upload2"
                                    size="normal"
                                    type="primary"
-                                   @click="exExecle" >导出
+                                   @click="exportRecord=true" >导出
                         </el-button >
                     </el-col>
-
                     <el-col :span="3">
                         <strong >今日预约人数：{{visitor}}</strong>
                     </el-col>
@@ -61,7 +61,6 @@
                     <el-col :span="2"  >
                         <strong >来访人数：{{status1}}</strong>
                     </el-col>
-
                     <el-table
 		                    v-loading="loadingUI"
 		                    element-loading-text="获取数据中..."
@@ -125,7 +124,6 @@
                         </el-table-column >
 
                     </el-table >
-
                     <div class="block" style="text-align: center; margin-top: 20px" >
                         <el-pagination
                                 background
@@ -136,7 +134,6 @@
 		                        :total="totalRecords" >
                         </el-pagination >
                     </div >
-
                 </el-col >
             </el-row >
         </el-col >
@@ -144,7 +141,7 @@
             <el-upload
                     class="upload-demo"
                     ref="upload"
-                    action="http://localhost:9090/visitor/info/add"
+                    :action="ACTION_ULR"
                     name="multipartFile"
                     :limit="1"
                     :auto-upload="false"
@@ -161,10 +158,17 @@
         </el-dialog >
         <el-dialog title="提示" :visible.sync="deleteConfirmVisible"  width="30%">
             <span >确认要删除[ <b >{{selectedItem.name}}</b > ]吗？</span >
-            <span slot="footer" class="dialog-footer" >
-	    <el-button @click="deleteConfirmVisible = false" icon="el-icon-close" >取 消</el-button >
+            <span  class="dialog-footer" >
+	    <el-button   @click="deleteConfirmVisible = false" icon="el-icon-close" >取 消</el-button >
 	    <el-button type="primary" @click="onConfirmDelete" icon="el-icon-check">确 定</el-button >
 	  </span >
+        </el-dialog >
+        <el-dialog title="请选择导出范围" :visible.sync="exportRecord"  width="25%">
+            <span  class="dialog-footer" >
+	            <el-button type="success" @click="exExecle('员工')" >员 工</el-button >
+	            <el-button type="danger" @click="exExecle('访客')" >访 客</el-button >
+                <el-button type="primary" @click="exExecle('')" >全 部</el-button >
+	        </span >
         </el-dialog >
     </div >
 </template >
@@ -200,31 +204,34 @@
                     customerName: "",
                 },
                 filters: {
-                    chooseTime:"",
+                    chooseTime:new Date(),
                     status:""
                 },
                 loadingUI: false,
                 status0: 0,
                 status1: 0,
-                visitor: 0
+                visitor: 0,
+                exportRecord:false
             }
         },
         methods: {
-            exExecle() {
+            exExecle(data) {
                 $.ajax({
-                    url: HOST + "staff/exportRecord",
+                    url: HOST + "excel/exportRecord",
                     type: "POST",
                     dataType: "json",
-                    data: _this.filters,
+                    data: {"chooseTime":_this.filters.chooseTime,"identity":data},
                     success: function (data) {
                         if (data.code == 200) {
+                            _this.$message.success('文件导出成功！');
                             console.log(data.data);
                          }
                     },
                     error: function (data) {
                         showMessage(_this, '服务器访问出错', 0);
                     }
-                })
+                });
+                _this.exportRecord=false;
             },
             audioError(){
                 document.getElementById('error').play();
@@ -307,6 +314,7 @@
                 _this.onSelectUsers();
             },//搜索
             onSelectUsers() {
+                _this.onVisitorCount();
                 _this.tableData = new Array();
                 _this.loadingUI = true;
                 _this.filters.page = _this.currentPage;
@@ -433,22 +441,22 @@
     });
 
     function onConnect() {
-        //console.log("connect successfully");
+        console.log("connect successfully");
         if (mqttReconnectInterval != null) {
             clearInterval(mqttReconnectInterval);
             mqttReconnectInterval = null;
         }
         for (let item of ServerTOPIC)//订阅主题
         {
-            //console.log(`subscribed server topic: ${item}`);
+            console.log(`subscribed server topic: ${item}`);
             client.subscribe(item);
         }
     }
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
-           // console.log("连接已断开");
-           // console.log("onConnectionLost:" + responseObject.errorMessage);
+           console.log("连接已断开");
+           console.log("onConnectionLost:" + responseObject.errorMessage);
             mqttReconnectInterval = setInterval(() => {
                 client.connect(options);
                 client.onConnectionLost = onConnectionLost;//注册连接断开处理事件

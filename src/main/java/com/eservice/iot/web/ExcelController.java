@@ -47,7 +47,7 @@ public class ExcelController {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @PostMapping("/exportRecord")
-    public Result exportRecord(@RequestParam(defaultValue = "") String chooseTime, @RequestParam(defaultValue = "员工") String identity) {
+    public Result exportRecord(@RequestParam(defaultValue = "") String chooseTime, @RequestParam(defaultValue = "") String identity) {
         Date date = new Date();
         //将前端传过来的时间转化为yyyy-MM-dd HH:mm:ss
         if(chooseTime.equalsIgnoreCase(null)&&chooseTime.equalsIgnoreCase("")){

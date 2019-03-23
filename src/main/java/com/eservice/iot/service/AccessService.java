@@ -64,11 +64,12 @@ public class AccessService {
             postParameters.put("end_timestamp", queryEndTime);
 
             ArrayList<String> identity = new ArrayList<>();
-            if(type.equalsIgnoreCase("员工")){
-                identity.add(Constant.STAFF);
-            }else if(type.equalsIgnoreCase("访客")){
-                identity.add(Constant.VISITOR);
-            }
+//            if(type.equalsIgnoreCase("员工")){
+//                identity.add(Constant.STAFF);
+//            }else if(type.equalsIgnoreCase("访客")){
+//                identity.add(Constant.VISITOR);
+//            }
+            identity.add(Constant.STAFF);
             postParameters.put("identity_list", identity);
 
              List<String> deviceList=new ArrayList<>();
@@ -172,11 +173,12 @@ public class AccessService {
             postParameters.put("end_timestamp", queryEndTime);
 
             ArrayList<String> identity = new ArrayList<>();
-            if(type.equalsIgnoreCase("员工")){
+         if(type.equalsIgnoreCase("员工")){
                 identity.add(Constant.STAFF);
             }else if(type.equalsIgnoreCase("访客")){
                 identity.add(Constant.VISITOR);
             }
+            identity.add(Constant.STAFF);
             postParameters.put("identity_list", identity);
 
             List<String> deviceList=new ArrayList<>();

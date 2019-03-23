@@ -83,7 +83,7 @@ public class ExcelController {
             try {
                 //放excel表格需要存放的地址
                 File dir = new File(EXCEL_PATH);
-                dir.setWritable(true, false);//获取Linux文件权限
+                dir.setWritable(true, false);//获取Linux文件权限,
                 if (!dir.exists()) {
                     if (dir.mkdir()) {
                         logger.info("excel目录创建成功!");
@@ -128,8 +128,8 @@ public class ExcelController {
             HSSFRow row = sheet.createRow(rowNum);
             row.createCell(0).setCellValue(rowNum);
             row.createCell(1).setCellValue(attendance.getName());
-            row.createCell(2).setCellValue(attendance.getStartTime()==null?"":format.format(attendance.getStartTime()));
-            row.createCell(3).setCellValue(attendance.getEndTime()==null?"":format.format(attendance.getEndTime()));
+            row.createCell(2).setCellValue(attendance.getStartTime()==null?"":sdf.format(attendance.getStartTime()));
+            row.createCell(3).setCellValue(attendance.getEndTime()==null?"":sdf.format(attendance.getEndTime()));
             rowNum++;
         }
     }

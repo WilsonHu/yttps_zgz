@@ -71,21 +71,27 @@ public class ExcelController {
         Map<String,Date>  outTimes = accessService.queryUserOut(startTime, endTime, identity);
         //进出记录合并之后的数据，每个人对应一个最早进入时间和一个最晚出去时间
         List<AttendanceTime> userTimes = mergeTime(inTimes,outTimes);
-
+        logger.info("userTimes Count: ==> "+userTimes.size());
         if (userTimes.size() > 0) {
             HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet("进出记录");
+            HSSFSheet sheet = workbook.createSheet(identity+"进出记录");
             //设置要导出的文件的名字
-            String fileName =identity+"进出时间记录-" + format.format(new Date()) + ".xlsx";
+            String fileName = format.format(new Date()) + ".xls";
             //新增数据行，并且设置单元格数据
             insertDataInSheet(sheet, userTimes);
+            logger.info("开始创建Excel文件和目录！");
             try {
                 //放excel表格需要存放的地址
                 File dir = new File(EXCEL_PATH);
                 if (!dir.exists()) {
                     if (dir.mkdir()) {
-                        logger.info("excel目录创建成功");
+                        logger.info("excel目录创建成功!");
+                    }else{
+                        logger.info("excel目录创建失败!");
                     }
+                    logger.info(EXCEL_PATH+fileName);
+                }else{
+                    logger.info("excel文件创建失败!");
                 }
                 FileOutputStream out = new FileOutputStream(EXCEL_PATH + fileName);
                 workbook.write(out);
@@ -95,6 +101,7 @@ public class ExcelController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            logger.info(BROKER_HOST  + ":8080/yttps/"+ fileName);
             return ResultGenerator.genSuccessResult(BROKER_HOST  + ":8080/yttps/"+ fileName);
         } else {
             return ResultGenerator.genSuccessResult("考勤记录为：0");
@@ -118,8 +125,8 @@ public class ExcelController {
             HSSFRow row = sheet.createRow(rowNum);
             row.createCell(0).setCellValue(rowNum);
             row.createCell(1).setCellValue(attendance.getName());
-            row.createCell(2).setCellValue(sdf.format(attendance.getStartTime()));
-            row.createCell(3).setCellValue(sdf.format(attendance.getEndTime()));
+            row.createCell(2).setCellValue(attendance.getStartTime()==null?"":format.format(attendance.getStartTime()));
+            row.createCell(3).setCellValue(attendance.getEndTime()==null?"":format.format(attendance.getEndTime()));
             rowNum++;
         }
     }

@@ -52,8 +52,9 @@ public class AccessService {
         }
 
         //存储所有进入的通行记录
-        List<AccessRecord> accessPassIn = new ArrayList<>();
-
+        List<AccessRecord> accessIn = new ArrayList<>();
+        //存储所有进入成功的通行记录
+        List<AccessRecord> accessPassIn =  new ArrayList<>();
         if (token != null) {
             HashMap<String, Object> postParameters = new HashMap<>();
             ///考勤记录查询开始时间
@@ -87,13 +88,14 @@ public class AccessService {
                 if (body != null) {
                     ResponseModel responseModel = JSONObject.parseObject(body, ResponseModel.class);
                     if (responseModel != null && responseModel.getResult() != null) {
-                        accessPassIn = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
-                        if (accessPassIn != null) {
+                        accessIn = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
+                        if (accessIn != null) {
                             //移除不通过的数据
-                            for (int i=0;i<accessPassIn.size();i++) {
-                                AccessRecord accessRecord = accessPassIn.get(i);
-                                if (!accessRecord.getPass_result().equals("PASS")) {
-                                    accessPassIn.remove(accessRecord);
+                            logger.info("accessIn Count ==> "+accessIn.size());
+                            for (AccessRecord accessRecord:accessIn) {
+                                if (accessRecord.getPass_result().equals("PASS")) {
+                                    accessPassIn.add(accessRecord);
+                                    logger.info("accessPassIn Count ==> "+accessPassIn.size());
                                 }
                             }
                         }
@@ -103,6 +105,8 @@ public class AccessService {
         } else {
             logger.error("Token is null, query accessPass error!");
         }
+
+
 
         if(accessPassIn.size()>0){
             //对数据，按姓名进行排序，确保姓名相同的人在一块
@@ -154,8 +158,9 @@ public class AccessService {
         if (token == null) {
             token = tokenService.getToken();
         }
-
-        //存储所有出去的通行记录
+//存储所有出去成功的通行记录
+        List<AccessRecord> accessOut = new ArrayList<>();
+        //存储所有出去成功的通行记录
         List<AccessRecord> accessPassOut = new ArrayList<>();
 
         if (token != null) {
@@ -191,13 +196,14 @@ public class AccessService {
                 if (body != null) {
                     ResponseModel responseModel = JSONObject.parseObject(body, ResponseModel.class);
                     if (responseModel != null && responseModel.getResult() != null) {
-                        accessPassOut = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
-                        if (accessPassOut != null) {
+                        accessOut = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
+                        if (accessOut != null) {
                             //移除不通过的数据
-                            for (int i=0;i<accessPassOut.size();i++) {
-                                AccessRecord accessRecord = accessPassOut.get(i);
-                                if (!accessRecord.getPass_result().equals("PASS")) {
-                                    accessPassOut.remove(accessRecord);
+                            logger.info("accessIn Count ==> "+accessOut.size());
+                            for (AccessRecord accessRecord:accessOut) {
+                                if (accessRecord.getPass_result().equals("PASS")) {
+                                    accessPassOut.add(accessRecord);
+                                    logger.info("accessPassOut Count ==> "+accessPassOut.size());
                                 }
                             }
                         }
@@ -207,7 +213,6 @@ public class AccessService {
         } else {
             logger.error("Token is null, query accessPass error!");
         }
-
 
         if(accessPassOut.size()>0){
             //对数据，按姓名进行排序，确保姓名相同的人在一块

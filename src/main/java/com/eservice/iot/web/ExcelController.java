@@ -83,23 +83,26 @@ public class ExcelController {
             try {
                 //放excel表格需要存放的地址
                 File dir = new File(EXCEL_PATH);
+                dir.setWritable(true, false);//获取Linux文件权限
                 if (!dir.exists()) {
                     if (dir.mkdir()) {
                         logger.info("excel目录创建成功!");
                     }else{
                         logger.info("excel目录创建失败!");
                     }
-                    logger.info(EXCEL_PATH+fileName);
                 }else{
-                    logger.info("excel文件创建失败!");
+                    logger.info(EXCEL_PATH+"路径存在！");
                 }
                 FileOutputStream out = new FileOutputStream(EXCEL_PATH + fileName);
                 workbook.write(out);
                 out.close();
+                logger.info("excel文件创建成功!");
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
+                logger.info("excel文件创建失败!");
             } catch (IOException e) {
                 e.printStackTrace();
+                logger.info("excel文件创建失败!");
             }
             logger.info(BROKER_HOST  + ":8080/yttps/"+ fileName);
             return ResultGenerator.genSuccessResult(BROKER_HOST  + ":8080/yttps/"+ fileName);

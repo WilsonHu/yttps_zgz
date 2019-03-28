@@ -223,8 +223,14 @@
                     success: function (data) {
                         if (data.code == 200) {
                             console.log(data.data);
+                            // var form = $("<form>");
+                            // form.attr("style", "display:none");
+                            // form.attr("method", "get");
+                            // form.attr("action", "http://" + data.data);
+                            // $("body").append(form);
+                            // form.submit();
                             var a = document.createElement("a");
-                            a.setAttribute("href",data.data);
+                            a.setAttribute("href","http://" + data.data);
                             a.setAttribute("target","_blank");
                             a.click();
                             //exportRecord(data.data);

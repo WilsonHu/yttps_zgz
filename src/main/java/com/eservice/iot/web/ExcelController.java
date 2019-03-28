@@ -54,6 +54,7 @@ public class ExcelController {
             date = new Date(chooseTime);
         }
         String time = format.format(date);
+        logger.info("Day ==> {}",time);
 
         Long startTime = null;
         Long endTime = null;
@@ -71,7 +72,9 @@ public class ExcelController {
         Map<String,Date>  outTimes = accessService.queryUserOut(startTime, endTime, identity);
         //进出记录合并之后的数据，每个人对应一个最早进入时间和一个最晚出去时间
         List<AttendanceTime> userTimes = mergeTime(inTimes,outTimes);
+
         logger.info("userTimes Count: ==> "+userTimes.size());
+
         if (userTimes.size() > 0) {
             HSSFWorkbook workbook = new HSSFWorkbook();
             HSSFSheet sheet = workbook.createSheet(identity+"进出记录");

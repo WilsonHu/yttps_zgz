@@ -46,37 +46,36 @@ public class AccessService {
 
 
     public Map<String,Date> queryUserIn(Long startTime, Long endTime, String type) {
-
         if (token == null) {
             token = tokenService.getToken();
         }
-
         //存储所有进入的通行记录
-        List<AccessRecord> accessIn = new ArrayList<>();
+        List<AccessRecord> accessIn;
         //存储所有进入成功的通行记录
         List<AccessRecord> accessPassIn =  new ArrayList<>();
+
         if (token != null) {
             HashMap<String, Object> postParameters = new HashMap<>();
-            ///考勤记录查询开始时间
-            postParameters.put("start_timestamp", startTime);
-            ///考勤记录查询结束时间
-            Long queryEndTime = endTime;
-            postParameters.put("end_timestamp", queryEndTime);
 
-            ArrayList<String> identity = new ArrayList<>();
-//            if(type.equalsIgnoreCase("员工")){
-//                identity.add(Constant.STAFF);
-//            }else if(type.equalsIgnoreCase("访客")){
-//                identity.add(Constant.VISITOR);
-//            }
-            identity.add(Constant.STAFF);
-            postParameters.put("identity_list", identity);
-
-             List<String> deviceList=new ArrayList<>();
+            List<String> deviceList=new ArrayList<>();
             for(String device : IN_DEVICE_ID.split(",")){
                 deviceList.add(device);
             }
+
             postParameters.put("device_id_list", deviceList);
+            ///考勤记录查询开始时间
+            postParameters.put("start_timestamp", startTime);
+            ///考勤记录查询结束时间
+            postParameters.put("end_timestamp", endTime);
+
+            ArrayList<String> identity = new ArrayList<>();
+            if(type.equalsIgnoreCase("员工")){
+                identity.add(Constant.STAFF);
+            }else if(type.equalsIgnoreCase("访客")){
+                identity.add(Constant.VISITOR);
+            }
+            postParameters.put("identity_list", identity);
+
 
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
@@ -91,10 +90,14 @@ public class AccessService {
                     if (responseModel != null && responseModel.getResult() != null) {
                         accessIn = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
                         if (accessIn != null) {
-                            //移除不通过的数据
                             logger.info("accessIn Count ==> "+accessIn.size());
+                            //移除不通过的数据
                             for (AccessRecord accessRecord:accessIn) {
-                                if (accessRecord.getPass_result().equals("PASS")) {
+                                if (accessRecord.getPass_result().equals("PASS")
+                                        &&accessRecord.getPerson()!=null
+                                        &&accessRecord.getPerson().getPerson_information()!=null
+                                        &&accessRecord.getPerson().getPerson_information().getName()!=null
+                                        &&!accessRecord.getPerson().getPerson_information().getName().equalsIgnoreCase("")) {
                                     accessPassIn.add(accessRecord);
                                     logger.info("accessPassIn Count ==> "+accessPassIn.size());
                                 }
@@ -107,8 +110,6 @@ public class AccessService {
             logger.error("Token is null, query accessPass error!");
         }
 
-
-
         if(accessPassIn.size()>0){
             //对数据，按姓名进行排序，确保姓名相同的人在一块
         Collections.sort(accessPassIn, new Comparator<AccessRecord>() {
@@ -119,35 +120,37 @@ public class AccessService {
         });
             int size=accessPassIn.size();
             //存储每个通行过得姓名对应得最早一次进入时间
-            Map<String, Date> outTime = new HashMap();
-            for (int i=0; i<size;){
+            Map<String, Date> inTime = new HashMap();
+            int i=0;
+            while (i<size){
                 //默认第一个姓名对应得时间是最早时间
                 String nameMin=accessPassIn.get(i).getPerson().getPerson_information().getName();
-                int dateMin = accessPassIn.get(i).getTimestamp();
+                int dateMin = accessPassIn.get(i).getTimestamp();//时间戳（秒）
                 int j=i+1;
                 while (j<size){
-                    //从第二个人开始比较
+                    //与第二个人开始比较
                     String name=accessPassIn.get(j).getPerson().getPerson_information().getName();
-                    int date =  accessPassIn.get(j).getTimestamp();
+                    int date =  accessPassIn.get(j).getTimestamp();//时间戳（秒）
                     //在姓名相同的一块数据中，找到这个人的最早进入时间
                     if(name.equalsIgnoreCase(nameMin)){
-                        if(date<dateMin){
+                        if(date < dateMin){
                             dateMin=date;
                         }
                     }else{
                         //当查询到下一个姓名相同的数据块中，对前一次的数找到的姓名对应得最早进入时间进行保存
-                        outTime.put(nameMin,new Date(dateMin*1000L));
+                        inTime.put(nameMin,new Date(dateMin*1000L));
                         //在从这个姓名开始，重新寻找
                         break;
                     }
                     j++;
                 }
                 i=j;
+                //比较到最后一个数据的时候，存储当前的最早时间
                 if(i==size){
-                    outTime.put(nameMin,new Date(dateMin*1000L));
+                    inTime.put(nameMin,new Date(dateMin*1000L));
                 }
             }
-            return  outTime;
+            return  inTime;
         }else{
             logger.error("accessPassIn is size:0, add empDate error!");
             return null;
@@ -155,22 +158,27 @@ public class AccessService {
     }
 
     public Map<String,Date>  queryUserOut(Long startTime, Long endTime, String type) {
-
         if (token == null) {
             token = tokenService.getToken();
         }
-//存储所有出去成功的通行记录
-        List<AccessRecord> accessOut = new ArrayList<>();
+        //存储所有出去的通行记录
+        List<AccessRecord> accessOut;
         //存储所有出去成功的通行记录
         List<AccessRecord> accessPassOut = new ArrayList<>();
 
         if (token != null) {
             HashMap<String, Object> postParameters = new HashMap<>();
+
+            List<String> deviceList=new ArrayList<>();
+            for(String device : OUT_DEVICE_ID.split(",")){
+                deviceList.add(device);
+            }
+
+            postParameters.put("device_id_list", deviceList);
             ///记录查询开始时间
             postParameters.put("start_timestamp", startTime);
             ///记录查询结束时间
-            Long queryEndTime = endTime;
-            postParameters.put("end_timestamp", queryEndTime);
+            postParameters.put("end_timestamp", endTime);
 
             ArrayList<String> identity = new ArrayList<>();
          if(type.equalsIgnoreCase("员工")){
@@ -178,14 +186,7 @@ public class AccessService {
             }else if(type.equalsIgnoreCase("访客")){
                 identity.add(Constant.VISITOR);
             }
-            identity.add(Constant.STAFF);
             postParameters.put("identity_list", identity);
-
-            List<String> deviceList=new ArrayList<>();
-            for(String device : OUT_DEVICE_ID.split(",")){
-                deviceList.add(device);
-            }
-            postParameters.put("device_id_list", deviceList);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
@@ -200,10 +201,14 @@ public class AccessService {
                     if (responseModel != null && responseModel.getResult() != null) {
                         accessOut = JSONArray.parseArray(responseModel.getResult(), AccessRecord.class);
                         if (accessOut != null) {
-                            //移除不通过的数据
                             logger.info("accessIn Count ==> "+accessOut.size());
+                            //移除不通过的数据,和姓名为空的
                             for (AccessRecord accessRecord:accessOut) {
-                                if (accessRecord.getPass_result().equals("PASS")) {
+                                if (accessRecord.getPass_result().equals("PASS")
+                                        &&accessRecord.getPerson()!=null
+                                        &&accessRecord.getPerson().getPerson_information()!=null
+                                        &&accessRecord.getPerson().getPerson_information().getName()!=null
+                                        &&!accessRecord.getPerson().getPerson_information().getName().equalsIgnoreCase("")) {
                                     accessPassOut.add(accessRecord);
                                     logger.info("accessPassOut Count ==> "+accessPassOut.size());
                                 }

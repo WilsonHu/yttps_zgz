@@ -1,4 +1,4 @@
-package com.eservice.iot.service;
+package com.eservice.iot.model;
 
 /**
  * Class Description:

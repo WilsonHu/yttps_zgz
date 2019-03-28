@@ -222,11 +222,12 @@
                     data: {"chooseTime":_this.filters.chooseTime,"identity":data},
                     success: function (data) {
                         if (data.code == 200) {
-                            _this.$message.success('文件导出成功！');
-                            var a = document.createElement("a");
-                            a.href = data.data;
-                            a.click();
                             console.log(data.data);
+                            var a = document.createElement("a");
+                            a.setAttribute("href",data.data);
+                            a.setAttribute("target","_blank");
+                            a.click();
+                            //exportRecord(data.data);
                          }
                     },
                     error: function (data) {
@@ -466,6 +467,14 @@
                 client.onMessageArrived = onMessageArrived;//注册消息接收处理事件
             }, 2000);
         }
+    }
+
+    function exportRecord(data) {
+        var $form = $("<form>"); //定义一个form表单
+        $form.hide().attr({target:'',method:'post','action': data});
+        var $input = $("<input>");
+        $input.attr({"type":"hidden","name":'req'}).val(req);
+        $form.append($input).appendTo($("body")).submit().remove();
     }
 
     function onMessageArrived(message) {

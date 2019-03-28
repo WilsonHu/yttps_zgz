@@ -3,9 +3,9 @@ package com.eservice.iot.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.eservice.iot.model.Constant;
 import com.eservice.iot.model.ResponseModel;
 import com.eservice.iot.model.Tag;
-import com.eservice.iot.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -127,7 +125,7 @@ public class TagService {
         ResponseModel responseModel = JSONObject.parseObject(body, ResponseModel.class);
         if (responseModel != null && responseModel.getResult() != null) {
             List<Tag> tmpList =JSONArray.parseArray(responseModel.getResult(), Tag.class);
-            if (tmpList != null ) {
+            if (tmpList != null &&tmpList.size()>0) {
                 ArrayList<Tag> visitorTagList = new ArrayList<>();
                 ArrayList<Tag> staffTagList = new ArrayList<>();
                 for (Tag tag : tmpList) {

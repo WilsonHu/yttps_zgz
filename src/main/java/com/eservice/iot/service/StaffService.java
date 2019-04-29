@@ -39,6 +39,10 @@ public class StaffService {
     @Value("${park_base_url}")
     private String PARK_BASE_URL;
 
+    @Value("${broker-host}")
+    private String brokerHost;
+
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -60,7 +64,7 @@ public class StaffService {
      */
     @Scheduled(fixedRate = 1000 * 60)
     public void fetchStaffScheduled() {
-        if (token == null && tokenService != null) {
+        if (Util.isPortUsing(brokerHost,9812) && token == null && tokenService != null) {
             token = tokenService.getToken();
         }
         if (token != null) {

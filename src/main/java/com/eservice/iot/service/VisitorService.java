@@ -38,6 +38,9 @@ public class VisitorService {
     @Value("${park_base_url}")
     private String PARK_BASE_URL;
 
+    @Value("${broker-host}")
+    private String brokerHost;
+
     /**
      * 长期有效的访客
      */
@@ -71,7 +74,7 @@ public class VisitorService {
      */
     @Scheduled(fixedRate = 1000 * 10)
     public void fetchVisitorListScheduled() {
-        if (token == null) {
+        if (Util.isPortUsing(brokerHost, 9812) && token == null) {
             token = tokenService.getToken();
         }
         if(token != null) {

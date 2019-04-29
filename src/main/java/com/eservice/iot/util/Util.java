@@ -1,8 +1,16 @@
 package com.eservice.iot.util;
 
+import com.eservice.iot.service.StaffService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
@@ -16,6 +24,7 @@ import java.util.Date;
  */
 public class Util {
 
+    private final static Logger logger = LoggerFactory.getLogger(Util.class);
 
     private static char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7',
             '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -120,5 +129,27 @@ public class Util {
         todayEnd.set(Calendar.MILLISECOND, 999);
         return todayEnd.getTime();
     }
+
+    /***
+     *  true:already in using  false:not using
+     * @param host
+     * @param port
+     * @throws UnknownHostException
+     */
+    public static boolean isPortUsing(String host,int port) {
+        boolean flag = false;
+        try {
+            InetAddress theAddress = InetAddress.getByName(host);
+            Socket socket = new Socket(theAddress,port);
+            flag = true;
+        } catch (Exception e) {
+
+        }
+        if(!flag){
+            logger.warn("Park's IP: " + host + " and port: " + port + " are not ready!");
+        }
+        return flag;
+    }
+
 
 }

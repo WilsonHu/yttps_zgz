@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.eservice.iot.model.Policy;
 import com.eservice.iot.model.ResponseModel;
+import com.eservice.iot.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ public class PolicyService {
 
     @Value("${park_base_url}")
     private String PARK_BASE_URL;
+
+    @Value("${broker-host}")
+    private String brokerHost;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -78,7 +82,7 @@ public class PolicyService {
      */
     @Scheduled(fixedRate = 1000 * 60)
     public void fetchPolicy() {
-        if (tokenService != null) {
+        if (Util.isPortUsing(brokerHost,9812) && tokenService != null) {
             token = tokenService.getToken();
             if(token != null) {
                 HttpHeaders headers = new HttpHeaders();

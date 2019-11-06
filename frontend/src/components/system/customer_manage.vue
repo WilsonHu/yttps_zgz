@@ -21,7 +21,7 @@
                                         v-model="filters.chooseTime"
                                         align="right"
                                         type="date"
-                                        format="yyyy-MM-dd"
+                                        value-format="yyyy-MM-dd"
                                         placeholder="选择日期" >
                                 </el-date-picker>
                             </el-form-item>
@@ -203,7 +203,7 @@
                     customerName: "",
                 },
                 filters: {
-                    chooseTime:new Date(),
+                    chooseTime:new Date().format('yyyy-MM-dd'),
                     status:""
                 },
                 loadingUI: false,
@@ -395,15 +395,15 @@
         computed: {},
         filters: { },
         created: function () {
-            this.userinfo = JSON.parse(sessionStorage.getItem('user'));
+            _this.userinfo = JSON.parse(sessionStorage.getItem('user'));
             if (isNull(this.userinfo)) {
-                this.$router.push({path: '/login'});
+                _this.$router.push({path: '/login'});
                 return;
             }
         },
         mounted: function () {
-            this.onSelectUsers();
-            this.onVisitorCount();
+            _this.onSelectUsers();
+            _this.onVisitorCount();
         },
     }
 

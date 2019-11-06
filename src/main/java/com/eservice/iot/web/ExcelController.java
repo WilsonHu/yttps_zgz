@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,41 +49,27 @@ public class ExcelController {
 
     @PostMapping("/exportRecord")
     public Result exportRecord(@RequestParam(defaultValue = "") String chooseTime, @RequestParam(defaultValue = "") String identity) {
-        Date date = new Date();
-        //将前端传过来的时间转化为yyyy-MM-dd HH:mm:ss
-        if (chooseTime.equalsIgnoreCase(null) && chooseTime.equalsIgnoreCase("")) {
-            date = new Date(chooseTime);
-        }
-        String time = format.format(date);
-        logger.info("Day ==> {}", time);
-
-        Long startTime = null;
-        Long endTime = null;
-
-        try {
-            startTime = sdf.parse(time + " 00:00:00").getTime() / 1000;
-            endTime = sdf.parse(time + " 23:59:59").getTime() / 1000;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //获取进入记录
-        Map<String, Date> inTimes = accessService.queryUserIn(startTime, endTime, identity);
-        //获取出去记录
-        Map<String, Date> outTimes = accessService.queryUserOut(startTime, endTime, identity);
-        //进出记录合并之后的数据，每个人对应一个最早进入时间和一个最晚出去时间
-        List<AttendanceTime> userTimes = mergeTime(inTimes, outTimes);
-        logger.info("userTimes Count: ==> " + userTimes.size());
+        logger.info("Day ==> {}", chooseTime);
         //设置要导出的文件的名字
-        String fileName = format.format(new Date()) + ".xls";
-
-        HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet(identity + "进出记录");
-
-        //新增数据行，并且设置单元格数据
-        insertDataInSheet(sheet, userTimes);
-        logger.info("开始创建Excel文件和目录！");
+        String fileName = chooseTime + ".xls";
         try {
+            Long startTime = sdf.parse(chooseTime + " 00:00:00").getTime() / 1000;
+            Long endTime = sdf.parse(chooseTime + " 23:59:59").getTime() / 1000;
+            //获取进入记录
+            Map<String, Date> inTimes = accessService.queryUserIn(startTime, endTime, identity);
+            //获取出去记录
+            Map<String, Date> outTimes = accessService.queryUserOut(startTime, endTime, identity);
+            //进出记录合并之后的数据，每个人对应一个最早进入时间和一个最晚出去时间
+            List<AttendanceTime> userTimes = mergeTime(inTimes, outTimes);
+            logger.info("userTimes Count: ==> " + userTimes.size());
+
+            HSSFWorkbook workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet(identity + "进出记录");
+
+            //新增数据行，并且设置单元格数据
+            insertDataInSheet(sheet, userTimes);
+            logger.info("开始创建Excel文件和目录！");
+
             //放excel表格需要存放的地址
             File dir = new File(EXCEL_PATH);
             dir.setWritable(true, false);//获取Linux文件权限,
@@ -107,12 +94,14 @@ public class ExcelController {
             e.printStackTrace();
             logger.info("excel文件创建失败!");
             fileName = "error.xls";
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
         return ResultGenerator.genSuccessResult(fileName);
     }
 
-    private void insertDataInSheet( HSSFSheet sheet, List<AttendanceTime> userTimes) {
-        String[] excelHeaders = {"序号", "姓名","最早进入时间", "最晚出去时间"};
+    private void insertDataInSheet(HSSFSheet sheet, List<AttendanceTime> userTimes) {
+        String[] excelHeaders = {"序号", "姓名", "最早进入时间", "最晚出去时间"};
         //headers表示excel表中第一行的表头
         HSSFRow row3 = sheet.createRow(0);
         //在excel表中添加表头
@@ -123,47 +112,47 @@ public class ExcelController {
         }
         //在表中存放查询到的数据放入对应的列
         int rowNum = 1;
-        if(userTimes==null||userTimes.size()<=0){
+        if (userTimes == null || userTimes.size() <= 0) {
             HSSFRow row = sheet.createRow(rowNum);
             row.createCell(0).setCellValue("本次导出，未查询到过人记录。");
-        }else {
+        } else {
             for (AttendanceTime attendance : userTimes) {
                 HSSFRow row = sheet.createRow(rowNum);
                 row.createCell(0).setCellValue(rowNum);
                 row.createCell(1).setCellValue(attendance.getName());
-                row.createCell(2).setCellValue(attendance.getStartTime()==null?"":sdf.format(attendance.getStartTime()));
-                row.createCell(3).setCellValue(attendance.getEndTime()==null?"":sdf.format(attendance.getEndTime()));
+                row.createCell(2).setCellValue(attendance.getStartTime() == null ? "" : sdf.format(attendance.getStartTime()));
+                row.createCell(3).setCellValue(attendance.getEndTime() == null ? "" : sdf.format(attendance.getEndTime()));
                 rowNum++;
             }
         }
     }
 
-    private List<AttendanceTime>  mergeTime(Map<String,Date>  inTime,Map<String,Date>  outTime){
+    private List<AttendanceTime> mergeTime(Map<String, Date> inTime, Map<String, Date> outTime) {
         List<AttendanceTime> userTime = new ArrayList<>();
-        if(inTime!=null)
-        for (Map.Entry<String,Date> entryIn : inTime.entrySet()) {
-            //创建一个存储，姓名对应最早进入时间和最晚出去时间
-            AttendanceTime attendanceTime = new AttendanceTime();
-            //设置当前人员的姓名
-            attendanceTime.setName(entryIn.getKey());
-            //设置当前人员最早进入时间
-            attendanceTime.setStartTime(entryIn.getValue());
-            //寻找最晚出去时间
-            if(outTime!=null)
-            for (Map.Entry<String,Date> entryOut:outTime.entrySet()) {
-                if(entryIn.getKey().equalsIgnoreCase(entryOut.getKey())){
-                    //存储当前人员最晚出去时间
-                    attendanceTime.setEndTime(entryOut.getValue());
-                    //移除已经存储过的
-                    outTime.remove(entryIn.getKey());
-                    break;
-                }
+        if (inTime != null)
+            for (Map.Entry<String, Date> entryIn : inTime.entrySet()) {
+                //创建一个存储，姓名对应最早进入时间和最晚出去时间
+                AttendanceTime attendanceTime = new AttendanceTime();
+                //设置当前人员的姓名
+                attendanceTime.setName(entryIn.getKey());
+                //设置当前人员最早进入时间
+                attendanceTime.setStartTime(entryIn.getValue());
+                //寻找最晚出去时间
+                if (outTime != null)
+                    for (Map.Entry<String, Date> entryOut : outTime.entrySet()) {
+                        if (entryIn.getKey().equalsIgnoreCase(entryOut.getKey())) {
+                            //存储当前人员最晚出去时间
+                            attendanceTime.setEndTime(entryOut.getValue());
+                            //移除已经存储过的
+                            outTime.remove(entryIn.getKey());
+                            break;
+                        }
+                    }
+                userTime.add(attendanceTime);
             }
-            userTime.add(attendanceTime);
-        }
         //只有出去的记录的人员也要保存
-        if(outTime!=null&&outTime.size()>0){
-            for (Map.Entry<String,Date> entryOut:outTime.entrySet()) {
+        if (outTime != null && outTime.size() > 0) {
+            for (Map.Entry<String, Date> entryOut : outTime.entrySet()) {
                 //创建一个存储，姓名对应最晚出去时间
                 AttendanceTime attendanceTime = new AttendanceTime();
                 //设置当前人员的姓名

@@ -131,6 +131,7 @@ public class VisitorInfoController {
                             e.printStackTrace();
                         }
                     }
+                    file.delete();
                 }
                 String jsonId = JSONObject.toJSONString(verify.getIdInfo());
                 StringBuffer json=new StringBuffer(jsonId.substring(0,jsonId.lastIndexOf("}")));

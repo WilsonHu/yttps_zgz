@@ -50,11 +50,11 @@ public class ExcelController {
     public Result exportRecord(@RequestParam(defaultValue = "") String chooseTime, @RequestParam(defaultValue = "") String identity) {
         Date date = new Date();
         //将前端传过来的时间转化为yyyy-MM-dd HH:mm:ss
-        if(chooseTime.equalsIgnoreCase(null)&&chooseTime.equalsIgnoreCase("")){
+        if (chooseTime.equalsIgnoreCase(null) && chooseTime.equalsIgnoreCase("")) {
             date = new Date(chooseTime);
         }
         String time = format.format(date);
-        logger.info("Day ==> {}",time);
+        logger.info("Day ==> {}", time);
 
         Long startTime = null;
         Long endTime = null;
@@ -62,57 +62,53 @@ public class ExcelController {
         try {
             startTime = sdf.parse(time + " 00:00:00").getTime() / 1000;
             endTime = sdf.parse(time + " 23:59:59").getTime() / 1000;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         //获取进入记录
-        Map<String,Date> inTimes = accessService.queryUserIn(startTime, endTime, identity);
+        Map<String, Date> inTimes = accessService.queryUserIn(startTime, endTime, identity);
         //获取出去记录
-        Map<String,Date>  outTimes = accessService.queryUserOut(startTime, endTime, identity);
+        Map<String, Date> outTimes = accessService.queryUserOut(startTime, endTime, identity);
         //进出记录合并之后的数据，每个人对应一个最早进入时间和一个最晚出去时间
-        List<AttendanceTime> userTimes = mergeTime(inTimes,outTimes);
+        List<AttendanceTime> userTimes = mergeTime(inTimes, outTimes);
+        logger.info("userTimes Count: ==> " + userTimes.size());
+        //设置要导出的文件的名字
+        String fileName = format.format(new Date()) + ".xls";
 
-        logger.info("userTimes Count: ==> "+userTimes.size());
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet(identity + "进出记录");
 
-        if (userTimes.size() > 0) {
-            HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet(identity+"进出记录");
-            //设置要导出的文件的名字
-            String fileName = format.format(new Date()) + ".xls";
-            //新增数据行，并且设置单元格数据
-            insertDataInSheet(sheet, userTimes);
-            logger.info("开始创建Excel文件和目录！");
-            try {
-                //放excel表格需要存放的地址
-                File dir = new File(EXCEL_PATH);
-                dir.setWritable(true, false);//获取Linux文件权限,
-                if (!dir.exists()) {
-                    if (dir.mkdir()) {
-                        logger.info("excel目录创建成功!");
-                    }else{
-                        logger.info("excel目录创建失败!");
-                    }
-                }else{
-                    logger.info(EXCEL_PATH+"路径存在！");
+        //新增数据行，并且设置单元格数据
+        insertDataInSheet(sheet, userTimes);
+        logger.info("开始创建Excel文件和目录！");
+        try {
+            //放excel表格需要存放的地址
+            File dir = new File(EXCEL_PATH);
+            dir.setWritable(true, false);//获取Linux文件权限,
+            if (!dir.exists()) {
+                if (dir.mkdir()) {
+                    logger.info("excel目录创建成功!");
+                } else {
+                    logger.info("excel目录创建失败!");
+                    fileName = "error.xls";
                 }
-                FileOutputStream out = new FileOutputStream(EXCEL_PATH + fileName);
-                workbook.write(out);
-                out.close();
-                logger.info("excel文件创建成功!");
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                logger.info("excel文件创建失败!");
-            } catch (IOException e) {
-                e.printStackTrace();
-                logger.info("excel文件创建失败!");
+            } else {
+                logger.info(EXCEL_PATH + "路径存在！");
             }
-            logger.info(BROKER_HOST  + ":8080/yttps/"+ fileName);
-            return ResultGenerator.genSuccessResult(BROKER_HOST  + ":8080/yttps/"+ fileName);
-        } else {
-            return ResultGenerator.genSuccessResult("考勤记录为：0");
+            FileOutputStream out = new FileOutputStream(EXCEL_PATH + fileName);
+            workbook.write(out);
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            logger.info("excel文件创建失败!");
+            fileName = "error.xls";
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.info("excel文件创建失败!");
+            fileName = "error.xls";
         }
-
+        return ResultGenerator.genSuccessResult(fileName);
     }
 
     private void insertDataInSheet( HSSFSheet sheet, List<AttendanceTime> userTimes) {
@@ -127,13 +123,18 @@ public class ExcelController {
         }
         //在表中存放查询到的数据放入对应的列
         int rowNum = 1;
-        for (AttendanceTime attendance : userTimes) {
+        if(userTimes==null||userTimes.size()<=0){
             HSSFRow row = sheet.createRow(rowNum);
-            row.createCell(0).setCellValue(rowNum);
-            row.createCell(1).setCellValue(attendance.getName());
-            row.createCell(2).setCellValue(attendance.getStartTime()==null?"":sdf.format(attendance.getStartTime()));
-            row.createCell(3).setCellValue(attendance.getEndTime()==null?"":sdf.format(attendance.getEndTime()));
-            rowNum++;
+            row.createCell(0).setCellValue("本次导出，未查询到过人记录。");
+        }else {
+            for (AttendanceTime attendance : userTimes) {
+                HSSFRow row = sheet.createRow(rowNum);
+                row.createCell(0).setCellValue(rowNum);
+                row.createCell(1).setCellValue(attendance.getName());
+                row.createCell(2).setCellValue(attendance.getStartTime()==null?"":sdf.format(attendance.getStartTime()));
+                row.createCell(3).setCellValue(attendance.getEndTime()==null?"":sdf.format(attendance.getEndTime()));
+                rowNum++;
+            }
         }
     }
 

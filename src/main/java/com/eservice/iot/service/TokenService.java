@@ -2,13 +2,8 @@ package com.eservice.iot.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.dingtalk.api.DefaultDingTalkClient;
-import com.dingtalk.api.DingTalkClient;
-import com.dingtalk.api.request.OapiGettokenRequest;
-import com.dingtalk.api.response.OapiGettokenResponse;
 import com.eservice.iot.model.ResponseModel;
 import com.eservice.iot.util.Util;
-import com.taobao.api.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +12,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -35,15 +29,8 @@ public class TokenService {
     @Value("${park_password}")
     private String PARK_PASSWORD;
 
-    @Value("${dd_corp_id}")
-    private String CORP_ID;
-    @Value("${dd_corp_secret}")
-    private String CORP_SECRET;
-
     @Autowired
     private RestTemplate restTemplate;
-
-    private OapiGettokenResponse oapiGettokenResponse;
 
     /**
      * 为了防止本机服务器时间和钉钉返回token的过期时间不match，
@@ -57,7 +44,6 @@ public class TokenService {
      * 园区登录，成功则返回token，失败返回null
      */
     public String getToken() {
-        String token = null;
         HashMap<String, String> postParameters = new HashMap<>();
         postParameters.put("username", PARK_USERNAME);
         postParameters.put("password", Util.getMD5String(PARK_PASSWORD));
@@ -66,48 +52,40 @@ public class TokenService {
         HttpEntity r = new HttpEntity<>(JSON.toJSONString(postParameters), headers);
         try {
             ResponseEntity<String> responseEntity = restTemplate.postForEntity(PARK_BASE_URL + "/user/login", r, String.class);
-            if (responseEntity.getStatusCodeValue() == ResponseCode.OK) {
-                String body = responseEntity.getBody();
-                if (body != null) {
-                    ResponseModel responseModel = JSONObject.parseObject(body, ResponseModel.class);
-                    if (responseModel != null && responseModel.getResult() != null) {
-                        token = responseModel.getResult();
-                    }
-                }
-            }
+            return responseBody(responseEntity);
         } catch (Exception exception) {
             logger.error("Token update error ==> " + exception.getMessage());
+            return getShaToken();
         }
+    }
 
+    public String getShaToken() {
+        String token = null;
+        HashMap<String, String> postParameters = new HashMap<>();
+        postParameters.put("username", PARK_USERNAME);
+        postParameters.put("password", Util.getSHA256StrJava(PARK_PASSWORD));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
+        HttpEntity r = new HttpEntity<>(JSON.toJSONString(postParameters), headers);
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(PARK_BASE_URL + "/login", r, String.class);
+            token = responseBody(responseEntity);
+        } catch (Exception exception) {
+            logger.error("ShaToken update error ==> " + exception.getMessage());
+        }
         return token;
     }
 
-    /**
-     * 钉钉访问Token
-     */
-    public String getDDToken() {
-        String token = null;
-        if (oapiGettokenResponse != null && (System.currentTimeMillis() < oapiGettokenResponse.getExpiresIn() - EXPIRE_BUFFER)) {
-            token = oapiGettokenResponse.getAccessToken();
-        } else {
-            DingTalkClient client = new DefaultDingTalkClient("https://oapi.dingtalk.com/gettoken");
-            OapiGettokenRequest request = new OapiGettokenRequest();
-            request.setCorpid(CORP_ID);
-            request.setCorpsecret(CORP_SECRET);
-            request.setHttpMethod("GET");
-            try {
-                oapiGettokenResponse = client.execute(request);
-                if (oapiGettokenResponse != null && oapiGettokenResponse.getErrcode().equals(0L)) {
-                    token = oapiGettokenResponse.getAccessToken();
-                } else {
-                    oapiGettokenResponse = null;
+    public String responseBody(ResponseEntity<String> responseEntity){
+        if (responseEntity.getStatusCodeValue() == ResponseCode.OK) {
+            String body = responseEntity.getBody();
+            if (body != null) {
+                ResponseModel responseModel = JSONObject.parseObject(body, ResponseModel.class);
+                if (responseModel != null && responseModel.getResult() != null && !responseModel.getResult().isEmpty()) {
+                    return responseModel.getResult();
                 }
-            } catch (ApiException e) {
-                e.printStackTrace();
-                oapiGettokenResponse = null;
             }
         }
-        return token;
+        return null;
     }
-
 }

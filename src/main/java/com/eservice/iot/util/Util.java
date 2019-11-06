@@ -1,16 +1,14 @@
 package com.eservice.iot.util;
 
-import com.eservice.iot.service.StaffService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
@@ -111,6 +109,44 @@ public class Util {
         stringbuffer.append(c1);
     }
 
+    /**
+     * 利用java原生的摘要实现SHA256加密
+     * @param str 加密后的报文
+     * @return
+     */
+    public static String getSHA256StrJava(String str){
+        MessageDigest messageDigest;
+        String encodeStr = "";
+        try {
+            messageDigest = MessageDigest.getInstance("SHA-256");
+            messageDigest.update(str.getBytes("UTF-8"));
+            encodeStr = byte2Hex(messageDigest.digest());
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return encodeStr;
+    }
+    /**
+     * 将byte转为16进制
+     * @param bytes
+     * @return
+     */
+    private static String byte2Hex(byte[] bytes){
+        StringBuffer stringBuffer = new StringBuffer();
+        String temp = null;
+        for (int i=0;i<bytes.length;i++){
+            temp = Integer.toHexString(bytes[i] & 0xFF);
+            if (temp.length()==1){
+                //1得到一位的进行补0操作
+                stringBuffer.append("0");
+            }
+            stringBuffer.append(temp);
+        }
+        return stringBuffer.toString();
+    }
+
 
     public static Date getDateStartTime() {
         Calendar todayStart = Calendar.getInstance();
@@ -130,11 +166,20 @@ public class Util {
         return todayEnd.getTime();
     }
 
-    /***
+    public static Date formatAttendanceTime(int hourTime) {
+        Calendar attendanceBegin = Calendar.getInstance();
+        attendanceBegin.set(Calendar.HOUR_OF_DAY, hourTime);
+        attendanceBegin.set(Calendar.MINUTE, 0);
+        attendanceBegin.set(Calendar.SECOND, 0);
+        attendanceBegin.set(Calendar.MILLISECOND, 0);
+        return attendanceBegin.getTime();
+    }
+	
+	/***
      *  true:already in using  false:not using
      * @param host
      * @param port
-     * @throws UnknownHostException
+     * @throws
      */
     public static boolean isPortUsing(String host,int port) {
         boolean flag = false;
@@ -143,13 +188,9 @@ public class Util {
             Socket socket = new Socket(theAddress,port);
             flag = true;
         } catch (Exception e) {
-
-        }
-        if(!flag){
             logger.warn("Park's IP: " + host + " and port: " + port + " are not ready!");
         }
         return flag;
     }
-
 
 }
